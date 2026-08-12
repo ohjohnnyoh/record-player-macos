@@ -23,8 +23,25 @@ struct VisualEffectBackground: NSViewRepresentable {
     }
 
     func updateNSView(_ view: NSVisualEffectView, context: Context) {
-        view.material = material
-        view.blendingMode = blending
+        // Присваивание этих свойств помечает вьюху грязной и запускает перерасчёт
+        // раскладки — даже когда значение то же самое. А перерасчёт вызывает
+        // очередное обновление SwiftUI, которое снова присваивает: получается
+        // бесконечная петля, съедавшая проценты процессора на ровном месте.
+        if view.material != material { view.material = material }
+        if view.blendingMode != blending { view.blendingMode = blending }
+    }
+}
+
+extension View {
+    /// Убирает собственную подложку окна, которую SwiftUI рисует под содержимым.
+    /// Без этого она закрашивает наш слой прозрачности, и обои сквозь окно не видны.
+    @ViewBuilder
+    func windowContainerClearBackground() -> some View {
+        if #available(macOS 15.0, *) {
+            containerBackground(.clear, for: .window)
+        } else {
+            self
+        }
     }
 }
 

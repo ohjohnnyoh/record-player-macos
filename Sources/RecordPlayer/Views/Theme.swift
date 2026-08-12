@@ -30,8 +30,18 @@ struct GlassCard: ViewModifier {
                     .fill(fill)
             }
             .overlay {
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(borderGradient, lineWidth: 1)
+                // Градиентный бортик остаётся только у выбранной карточки — она одна.
+                // На всех остальных он был главной статьёй расходов при анимации:
+                // растеризация осевого градиента идёт на процессоре, и 48 таких
+                // обводок пересчитывались каждый кадр, пока выезжал сайдбар.
+                // Сплошная обводка даёт ту же грань стекла и почти ничего не стоит.
+                if selected {
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .strokeBorder(selectedBorder, lineWidth: 1.2)
+                } else {
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .strokeBorder(.white.opacity(hovered ? 0.30 : 0.16), lineWidth: 1)
+                }
             }
     }
 
@@ -42,22 +52,11 @@ struct GlassCard: ViewModifier {
     }
 
     /// Бортик светлеет сверху-слева и гаснет снизу-справа — как отблеск на грани стекла.
-    private var borderGradient: LinearGradient {
-        if selected {
-            LinearGradient(
-                colors: [accent.opacity(0.95), accent.opacity(0.35)],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-        } else {
-            LinearGradient(
-                colors: [
-                    .white.opacity(hovered ? 0.34 : 0.20),
-                    .white.opacity(hovered ? 0.10 : 0.06),
-                    .white.opacity(0.03)
-                ],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-        }
+    private var selectedBorder: LinearGradient {
+        LinearGradient(
+            colors: [accent.opacity(0.95), accent.opacity(0.35)],
+            startPoint: .topLeading, endPoint: .bottomTrailing
+        )
     }
 }
 

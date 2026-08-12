@@ -49,14 +49,14 @@ struct PlayerBar: View {
         .frame(height: 58)
         .frame(maxWidth: 900)
         .background {
-            // Единственное место, где размытие содержимого оправдано:
-            // под пилюлей проезжают карточки, и их нужно приглушить.
+            // Здесь была `.ultraThinMaterial`. Проблема в том, что ширина пилюли
+            // равна ширине колонки: пока сайдбар выезжает, она меняется каждый кадр,
+            // и размытие пересчитывается заново на каждом. На широком окне ширина
+            // упирается в лимит 900 и не меняется — потому там и было плавно,
+            // а на узком дёргалось. Плотная заливка приглушает карточки не хуже
+            // и не стоит ничего.
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(.white.opacity(0.05))
-                }
+                .fill(Color(red: 0.11, green: 0.11, blue: 0.125).opacity(0.94))
         }
         .overlay {
             RoundedRectangle(cornerRadius: 16, style: .continuous)

@@ -20,7 +20,6 @@ struct RootView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(VisualEffectBackground().ignoresSafeArea())
             // Плеер не в раскладке, а поверх неё — карточки проезжают под пилюлей.
             .overlay(alignment: .bottom) { PlayerBar() }
         }
@@ -31,6 +30,15 @@ struct RootView: View {
             placement: .toolbar,
             prompt: "Поиск станции или жанра"
         )
+        // Один слой прозрачности на всё окно, а не на правую колонку.
+        //
+        // Раньше он висел на колонке с сеткой, да ещё и с `.ignoresSafeArea()` —
+        // то есть вылезал за её границы под сайдбар, и в зоне перекрытия
+        // складывались два размытия. Вдобавок колонка меняет размер каждый кадр
+        // при выезде сайдбара, и система пересчитывала размытие обоев на каждом.
+        // Здесь размер backdrop равен окну и во время анимации не меняется.
+        .background(VisualEffectBackground().ignoresSafeArea())
+        .windowContainerClearBackground()
         .background(WindowConfigurator { window in
             // Без этого система не пропустит обои рабочего стола сквозь окно.
             window.isOpaque = false
