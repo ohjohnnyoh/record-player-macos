@@ -1,0 +1,13 @@
+# Сборка
+.build/
+build/
+*.app
+
+# macOS
+.DS_Store
+
+# Xcode, если однажды понадобится
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
