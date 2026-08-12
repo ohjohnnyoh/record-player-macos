@@ -45,6 +45,15 @@ if [[ $INSTALL -eq 1 ]]; then
     sleep 1
     rm -rf "/Applications/$APP_NAME.app"
     cp -R "$APP" "/Applications/$APP_NAME.app"
+
+    # Finder кэширует иконки и сам бандл не перечитывает — приложение так и будет
+    # показываться со стандартной. Обновляем время изменения, перерегистрируем
+    # в LaunchServices и просим Dock перечитать кэш.
+    touch "/Applications/$APP_NAME.app"
+    LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+    [[ -x "$LSREGISTER" ]] && "$LSREGISTER" -f "/Applications/$APP_NAME.app" || true
+    killall Dock >/dev/null 2>&1 || true
+
     echo
     echo "Готово: /Applications/$APP_NAME.app"
     echo "Запустить:  open -a Record"
