@@ -103,7 +103,13 @@ func drawCentered(_ text: String, y: CGFloat, size: CGFloat, weight: NSFont.Weig
 }
 
 drawCentered("Record", y: H - 78, size: 23, weight: .semibold, alpha: 0.95)
-drawCentered("Перетащите приложение в папку «Программы»", y: H - 108, size: 13, weight: .regular, alpha: 0.55)
+drawCentered(
+    "Перетащите в «Программы»  ·  Drag to Applications",
+    y: H - 108,
+    size: 13,
+    weight: .regular,
+    alpha: 0.55
+)
 
 NSGraphicsContext.restoreGraphicsState()
 
