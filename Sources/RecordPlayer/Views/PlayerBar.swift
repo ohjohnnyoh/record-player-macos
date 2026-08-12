@@ -331,23 +331,29 @@ private struct PlayerGlassSurface: ViewModifier {
                 .clipShape(shape)
                 .modifier(PlayerDepth(hovered: hovered, reduceMotion: reduceMotion))
         } else if #available(macOS 26.0, *) {
-            content
-                .glassEffect(
-                    .regular
-                        .tint(accent.opacity(hovered ? 0.12 : 0.075))
-                        .interactive(!reduceMotion),
-                    in: shape
-                )
-                .overlay {
-                    shape
-                        .inset(by: 0.8)
-                        .strokeBorder(
-                            .white.opacity(increasedContrast ? 0.34 : 0.10),
-                            lineWidth: increasedContrast ? 1.1 : 0.6
-                        )
-                        .allowsHitTesting(false)
-                }
-                .modifier(PlayerDepth(hovered: hovered, reduceMotion: reduceMotion))
+            // Стекло не умеет сэмплировать другое стекло, поэтому Apple требует
+            // группировать такие поверхности в контейнер. Сейчас слой здесь один,
+            // но без контейнера любая добавленная рядом стеклянная деталь
+            // рассогласуется с пилюлей — в мини-плеере контейнер уже стоит.
+            GlassEffectContainer(spacing: 12) {
+                content
+                    .glassEffect(
+                        .regular
+                            .tint(accent.opacity(hovered ? 0.12 : 0.075))
+                            .interactive(!reduceMotion),
+                        in: shape
+                    )
+                    .overlay {
+                        shape
+                            .inset(by: 0.8)
+                            .strokeBorder(
+                                .white.opacity(increasedContrast ? 0.34 : 0.10),
+                                lineWidth: increasedContrast ? 1.1 : 0.6
+                            )
+                            .allowsHitTesting(false)
+                    }
+            }
+            .modifier(PlayerDepth(hovered: hovered, reduceMotion: reduceMotion))
         } else {
             content
                 .background { legacyGlass }

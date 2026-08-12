@@ -54,14 +54,13 @@ struct RootView: View {
             window.backgroundColor = .clear
             window.hasShadow = true
 
+            // Скругление и кант окна рисует система: она клиппует содержимое
+            // по форме окна сама, и радиус у неё свой в каждой версии macOS.
+            // Свои cornerRadius и borderWidth поверх этого давали второй кант
+            // и заметный уступ, если системный радиус не совпадал с нашим.
             if let contentView = window.contentView {
                 contentView.wantsLayer = true
                 contentView.layer?.backgroundColor = NSColor.clear.cgColor
-                contentView.layer?.cornerRadius = Theme.windowRadius
-                contentView.layer?.cornerCurve = .continuous
-                contentView.layer?.masksToBounds = true
-                contentView.layer?.borderWidth = 0.7
-                contentView.layer?.borderColor = NSColor.white.withAlphaComponent(0.14).cgColor
             }
         })
         .sheet(item: $state.playlistStation) { station in

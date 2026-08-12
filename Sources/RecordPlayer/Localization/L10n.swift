@@ -1,7 +1,7 @@
 import Foundation
 
-/// Centralized access to strings that are resolved outside SwiftUI's
-/// `LocalizedStringKey` APIs (model values, errors and accessibility text).
+/// Доступ к строкам, которые резолвятся вне SwiftUI-механизма `LocalizedStringKey`:
+/// значения моделей, ошибки и тексты для VoiceOver.
 enum L10n {
     static func string(_ key: String) -> String {
         Bundle.main.localizedString(forKey: key, value: key, table: "Localizable")
@@ -16,73 +16,32 @@ enum L10n {
     }
 
     static func trackCount(_ count: Int) -> String {
-        plural(
-            count,
-            one: "%@ трек",
-            few: "%@ трека",
-            many: "%@ треков"
-        )
+        plural("%lld треков", count)
     }
 
     static func stationCount(_ count: Int) -> String {
-        plural(
-            count,
-            one: "%@ станция",
-            few: "%@ станции",
-            many: "%@ станций"
-        )
+        plural("%lld станций", count)
     }
 
     static func playCount(_ count: Int) -> String {
-        plural(
-            count,
-            one: "%@ включение",
-            few: "%@ включения",
-            many: "%@ включений"
-        )
+        plural("%lld включений", count)
     }
 
     static func recentTrackCount(_ count: Int) -> String {
-        plural(
-            count,
-            one: "%@ трек за последние сутки",
-            few: "%@ трека за последние сутки",
-            many: "%@ треков за последние сутки"
-        )
+        plural("%lld треков за последние сутки", count)
     }
 
     static func listeningSummary(stations: Int, duration: String) -> String {
-        let stationText = stationCount(stations)
-        return format("%@ · всего %@", stationText, duration)
+        format("%@ · всего %@", stationCount(stations), duration)
     }
 
-    private static func plural(
-        _ count: Int,
-        one: String,
-        few: String,
-        many: String
-    ) -> String {
-        let key: String
-        if isRussian {
-            let remainder100 = abs(count) % 100
-            let remainder10 = remainder100 % 10
-            if remainder10 == 1, remainder100 != 11 {
-                key = one
-            } else if (2...4).contains(remainder10), !(12...14).contains(remainder100) {
-                key = few
-            } else {
-                key = many
-            }
-        } else {
-            key = count == 1 ? one : many
-        }
-        return format(key, String(count))
-    }
-
-    private static var isRussian: Bool {
-        let language = Bundle.main.preferredLocalizations.first
-            ?? Locale.current.language.languageCode?.identifier
-            ?? "ru"
-        return language.lowercased().hasPrefix("ru")
+    /// Формы множественного числа берутся из String Catalog, а не считаются в коде.
+    ///
+    /// Каталог хранит вариации по категориям CLDR (one/few/many/other), компилируется
+    /// в `Localizable.stringsdict`, а `localizedStringWithFormat` выбирает нужную по
+    /// правилам конкретного языка. Раньше правила для русского были прописаны в Swift
+    /// вручную — работало, но третий язык потребовал бы правки кода вместо каталога.
+    private static func plural(_ key: String, _ count: Int) -> String {
+        String.localizedStringWithFormat(string(key), count)
     }
 }
