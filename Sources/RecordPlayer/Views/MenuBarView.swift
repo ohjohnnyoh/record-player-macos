@@ -9,6 +9,9 @@ struct MenuBarView: View {
 
     private var track: Track? { state.currentTrack }
 
+    /// Высота строки станции: иконка 20 плюс отступы и вторая строка с треком.
+    private static let rowHeight: CGFloat = 34
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
@@ -101,7 +104,11 @@ struct MenuBarView: View {
                     .padding(.horizontal, 6)
                     .padding(.bottom, 6)
                 }
-                .frame(maxHeight: 260)
+                // Именно высота, а не потолок. Окно меню-бара подстраивается под
+                // содержимое и высоту вниз не предлагает, а ScrollView растяжимый —
+                // с одним лишь maxHeight он схлопывался в ноль, и список станций
+                // не показывался вовсе.
+                .frame(height: min(CGFloat(list.count) * Self.rowHeight + 6, 260))
             }
         }
     }
