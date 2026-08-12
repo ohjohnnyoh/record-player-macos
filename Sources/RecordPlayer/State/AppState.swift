@@ -107,6 +107,14 @@ final class AppState: ObservableObject {
     /// Таймер сна: момент, когда воспроизведение остановится.
     @Published private(set) var sleepDeadline: Date?
 
+    // MARK: - Плейлист станции
+
+    /// Станция, чей плейлист открыт. nil — панель закрыта.
+    @Published var playlistStation: Station?
+    @Published private(set) var playlist: [PlaylistTrack] = []
+    @Published private(set) var isLoadingPlaylist = false
+    @Published private(set) var playlistError: String?
+
     let player = AudioPlayer()
 
     // MARK: - Внутреннее
@@ -420,6 +428,30 @@ final class AppState: ObservableObject {
                 self?.sleepDeadline = nil
             }
         }
+    }
+
+    // MARK: - Плейлист станции
+
+    func showPlaylist(for station: Station) {
+        playlistStation = station
+        playlist = []
+        playlistError = nil
+        Task { await loadPlaylist(for: station) }
+    }
+
+    func loadPlaylist(for station: Station) async {
+        isLoadingPlaylist = true
+        playlistError = nil
+        do {
+            let tracks = try await RecordAPI.fetchStationHistory(id: station.id)
+            // Панель могли закрыть или переключить, пока ответ шёл.
+            guard playlistStation?.id == station.id else { return }
+            playlist = tracks
+        } catch {
+            guard playlistStation?.id == station.id else { return }
+            playlistError = error.localizedDescription
+        }
+        isLoadingPlaylist = false
     }
 
     // MARK: - Статистика прослушивания

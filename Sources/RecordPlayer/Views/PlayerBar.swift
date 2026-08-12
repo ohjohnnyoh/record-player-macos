@@ -210,6 +210,10 @@ struct PlayerBar: View {
 
             Divider()
 
+            if let station = state.currentStation {
+                Button("Что играло раньше…") { state.showPlaylist(for: station) }
+            }
+
             Button("Мини-плеер") {
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "mini")

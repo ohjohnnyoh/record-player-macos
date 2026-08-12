@@ -44,6 +44,11 @@ struct RootView: View {
             window.isOpaque = false
             window.backgroundColor = .clear
         })
+        .sheet(item: $state.playlistStation) { station in
+            StationPlaylistView(station: station)
+                .environmentObject(state)
+                .environment(\.appAccent, accent)
+        }
         .tint(accent)
     }
 

@@ -52,6 +52,16 @@ enum RecordAPI {
         }
     }
 
+    /// Плейлист станции: что играло в эфире до текущего трека.
+    /// Отдаёт порядка 350 записей за последние сутки-двое.
+    static func fetchStationHistory(id: Int) async throws -> [PlaylistTrack] {
+        var components = URLComponents(string: "https://www.radiorecord.ru/api/station/history/")!
+        components.queryItems = [URLQueryItem(name: "id", value: String(id))]
+        let (data, response) = try await session.data(from: components.url!)
+        try validate(response)
+        return try decoder.decode(StationHistoryResponse.self, from: data).result.history
+    }
+
     private static func validate(_ response: URLResponse) throws {
         guard let http = response as? HTTPURLResponse else { return }
         guard (200..<300).contains(http.statusCode) else {

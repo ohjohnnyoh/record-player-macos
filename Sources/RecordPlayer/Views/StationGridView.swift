@@ -58,7 +58,8 @@ struct StationGridView: View {
             isFavorite: state.favorites.contains(station.id),
             accent: accent,
             onPlay: { state.play(station) },
-            onToggleFavorite: { state.toggleFavorite(station) }
+            onToggleFavorite: { state.toggleFavorite(station) },
+            onShowPlaylist: { state.showPlaylist(for: station) }
         )
         .equatable()
     }
@@ -105,6 +106,7 @@ struct StationCard: View, Equatable {
     let accent: Color
     let onPlay: () -> Void
     let onToggleFavorite: () -> Void
+    let onShowPlaylist: () -> Void
 
     @State private var isHovered = false
 
@@ -163,6 +165,7 @@ struct StationCard: View, Equatable {
         .animation(.easeOut(duration: 0.15), value: isHovered)
         .contextMenu {
             Button(isPlaying ? "Пауза" : "Слушать", action: onPlay)
+            Button("Что играло раньше…", action: onShowPlaylist)
             Button(isFavorite ? "Убрать из избранного" : "В избранное", action: onToggleFavorite)
             if let track, let url = track.itunesUrl.flatMap(URL.init(string:)) {
                 Divider()
