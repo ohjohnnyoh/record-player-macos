@@ -33,6 +33,7 @@ struct MenuBarView: View {
                     .fill(Color.black.opacity(0.35))
                 if let track, track.artworkURL != nil {
                     CachedImage(url: track.smallArtworkURL, contentMode: .fill)
+                        .frame(width: 44, height: 44)
                         .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
                 } else if let station = state.currentStation {
                     CachedImage(url: station.iconURL, contentMode: .fit) { Color.clear }

@@ -82,7 +82,11 @@ struct PlayerBar: View {
                 .fill(Color.black.opacity(0.35))
 
             if let track, track.artworkURL != nil {
+                // Размер обязателен до обрезки: при .fill картинка растягивается
+                // больше предложенного, и без рамки clipShape режет уже по её
+                // раздутым границам — неквадратные обложки наезжали на текст.
                 CachedImage(url: track.smallArtworkURL, contentMode: .fill)
+                    .frame(width: 38, height: 38)
                     .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
             } else if let station {
                 CachedImage(url: station.iconURL, contentMode: .fit) {
