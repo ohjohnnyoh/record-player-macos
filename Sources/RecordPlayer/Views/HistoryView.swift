@@ -5,8 +5,40 @@ import SwiftUI
 struct HistoryView: View {
     @Environment(\.appAccent) private var accent
     @EnvironmentObject private var state: AppState
+    @State private var mode: Mode = .tracks
+
+    enum Mode: String, CaseIterable, Identifiable {
+        case tracks, stations
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .tracks: "Треки"
+            case .stations: "Станции"
+            }
+        }
+    }
 
     var body: some View {
+        VStack(spacing: 0) {
+            Picker("", selection: $mode) {
+                ForEach(Mode.allCases) { Text($0.title).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .frame(width: 220)
+            .padding(.top, 12)
+            .padding(.bottom, 10)
+
+            if mode == .stations {
+                StationStatsView()
+            } else {
+                tracksList
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var tracksList: some View {
         Group {
             if filtered.isEmpty {
                 VStack(spacing: 10) {

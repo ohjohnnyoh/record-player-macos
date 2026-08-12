@@ -50,6 +50,7 @@ final class AppState: ObservableObject {
     @Published private(set) var isLoadingStations = false
     @Published private(set) var loadError: String?
     @Published private(set) var history: [HistoryEntry] = []
+    @Published private(set) var stationStats: [Int: StationStat] = [:]
 
     // MARK: - Готовые списки для интерфейса
     //
@@ -119,6 +120,10 @@ final class AppState: ObservableObject {
     private var appliedSearch = ""
     private var recomputeScheduled = false
 
+    /// Начало текущего отрезка прослушивания — из него набегает статистика.
+    private var listenStart: Date?
+    private var listenStationID: Int?
+
     private var nowTimer: Task<Void, Never>?
     private var sleepTimer: Task<Void, Never>?
     private var spaceMonitor: Any?
@@ -133,6 +138,7 @@ final class AppState: ObservableObject {
         quality = Defaults.quality
         accent = Defaults.accent
         history = Defaults.history
+        stationStats = StatsStore.load()
         player.volume = Defaults.volume
         player.isMuted = Defaults.isMuted
 
@@ -174,6 +180,7 @@ final class AppState: ObservableObject {
             .removeDuplicates()
             .sink { [weak self] state in
                 guard let self else { return }
+                self.updateListeningClock(for: state)
                 self.objectWillChange.send()
                 RemoteControl.shared.update(
                     station: self.currentStation,
@@ -185,6 +192,14 @@ final class AppState: ObservableObject {
 
         configureRemoteControl()
         installSpaceShortcut()
+
+        // При выходе закрываем текущий отрезок, иначе последние минуты пропадут.
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.flushListening() }
+        }
     }
 
     /// Пробел = play/pause, но только когда фокус не в текстовом поле.
@@ -290,6 +305,7 @@ final class AppState: ObservableObject {
     }
 
     func refreshNowPlaying() async {
+        checkpointListening()
         guard let tracks = try? await RecordAPI.fetchNowPlaying() else { return }
         // Дополняем, а не заменяем: если в очередном ответе станции не оказалось,
         // это не повод стирать её трек — иначе обложка пропадает на ровном месте
@@ -324,6 +340,8 @@ final class AppState: ObservableObject {
 
     func startPlayback(_ station: Station) {
         guard let url = station.streamURL(for: quality) else { return }
+        flushListening()
+        countPlay(of: station)
         currentStation = station
         lastLoggedTrackKey = nil
         Defaults.lastStationID = station.id
@@ -358,7 +376,16 @@ final class AppState: ObservableObject {
     }
 
     func playRandom() {
-        let pool = favorites.isEmpty ? stations : favoriteStations
+        // Выбираем из того, что сейчас на экране — так кнопка учитывает фильтр
+        // по жанру и раздел. Раньше пул брался из избранного, и с одной
+        // избранной станцией «случайная» всегда попадала в неё же.
+        var pool = visibleStations.isEmpty ? stations : visibleStations
+
+        // И не выпадаем на станцию, которая уже играет.
+        if pool.count > 1, let current = currentStation {
+            pool.removeAll { $0.id == current.id }
+        }
+
         guard let station = pool.randomElement() else { return }
         startPlayback(station)
     }
@@ -393,6 +420,89 @@ final class AppState: ObservableObject {
                 self?.sleepDeadline = nil
             }
         }
+    }
+
+    // MARK: - Статистика прослушивания
+
+    /// Считает время по станциям. Отрезок открывается, когда звук реально пошёл,
+    /// и закрывается на паузе, смене станции или выходе.
+    private func updateListeningClock(for state: PlaybackState) {
+        guard state == .playing else {
+            flushListening()
+            return
+        }
+        if listenStationID != currentStation?.id { flushListening() }
+        if listenStart == nil {
+            listenStart = Date()
+            listenStationID = currentStation?.id
+        }
+    }
+
+    private func flushListening() {
+        defer {
+            listenStart = nil
+            listenStationID = nil
+        }
+        guard let start = listenStart,
+              let id = listenStationID,
+              let station = stations.first(where: { $0.id == id })
+        else { return }
+
+        let seconds = Date().timeIntervalSince(start)
+        // Пролистывание станций одну за другой статистику засорять не должно.
+        guard seconds >= 5 else { return }
+
+        var stat = stationStats[id] ?? StationStat(
+            stationID: id, title: station.title,
+            totalSeconds: 0, lastPlayed: Date(), plays: 0
+        )
+        stat.title = station.title
+        stat.totalSeconds += seconds
+        stat.lastPlayed = Date()
+        stationStats[id] = stat
+        StatsStore.save(stationStats)
+    }
+
+    /// Закрывает отрезок и сразу открывает новый — чтобы долгое прослушивание
+    /// не потерялось целиком, если приложение завершится неожиданно.
+    private func checkpointListening() {
+        guard listenStart != nil, player.state == .playing else { return }
+        flushListening()
+        listenStart = Date()
+        listenStationID = currentStation?.id
+    }
+
+    private func countPlay(of station: Station) {
+        var stat = stationStats[station.id] ?? StationStat(
+            stationID: station.id, title: station.title,
+            totalSeconds: 0, lastPlayed: Date(), plays: 0
+        )
+        stat.title = station.title
+        stat.plays += 1
+        stat.lastPlayed = Date()
+        stationStats[station.id] = stat
+        StatsStore.save(stationStats)
+    }
+
+    /// Станции по времени прослушивания, самые слушаемые сверху.
+    var statsByTime: [StationStat] {
+        stationStats.values
+            .filter { $0.totalSeconds >= 5 || $0.plays > 0 }
+            .sorted { ($0.totalSeconds, $0.lastPlayed) > ($1.totalSeconds, $1.lastPlayed) }
+    }
+
+    /// Недавно включённые станции.
+    var recentStations: [Station] {
+        stationStats.values
+            .sorted { $0.lastPlayed > $1.lastPlayed }
+            .compactMap { stat in stations.first { $0.id == stat.stationID } }
+    }
+
+    func clearStats() {
+        stationStats = [:]
+        listenStart = nil
+        listenStationID = nil
+        StatsStore.save([:])
     }
 
     // MARK: - История
