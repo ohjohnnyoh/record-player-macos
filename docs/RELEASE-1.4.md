@@ -1,18 +1,21 @@
 # Record 1.4
 
-Плеер станций Radio Record для macOS. Нативное приложение, без браузера и вебвью.
+[Русский](#русский) · [English](#english)
 
-## Установка
+## Русский
 
-1. Скачайте `Record-1.4.dmg` ниже.
-2. Откройте образ и перетащите **Record** в «Программы».
-3. Первый запуск — правым кликом по приложению → **Открыть**, затем **Открыть** ещё раз.
+Нативный неофициальный плеер Radio Record для macOS. Работает без браузера и вебвью.
 
-Второй шаг нужен один раз: у сборки ad-hoc подпись, без сертификата Apple
-Developer ID и нотарификации, поэтому macOS предупреждает о неустановленном
-разработчике. Дальше приложение открывается обычным двойным щелчком.
+### Установка
 
-Если предупреждение не уходит:
+1. Скачайте `Record-1.4.dmg` в разделе Assets ниже.
+2. Откройте образ и перетащите Record в папку «Программы».
+3. При первом запуске нажмите на приложение правой кнопкой мыши и выберите **Открыть**.
+4. Подтвердите запуск в появившемся окне.
+
+У сборки локальная ad-hoc подпись, но нет сертификата Apple Developer ID и нотарификации. Поэтому Gatekeeper может показать предупреждение. Эти действия нужны только при первом запуске.
+
+Если macOS продолжает блокировать приложение:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/Record.app
@@ -20,45 +23,87 @@ xattr -dr com.apple.quarantine /Applications/Record.app
 
 Требуется macOS 14 или новее.
 
-## Что нового в 1.4
+### Что нового
 
-- Стеклянные поверхности плеера сгруппированы в `GlassEffectContainer` — на
-  macOS 26 соседние стеклянные детали больше не рассогласуются между собой.
-- Скругление и кант окна теперь рисует система. Свои поверх системных давали
-  второй кант и уступ, когда радиус macOS не совпадал с заданным.
-- Формы множественного числа перенесены из кода в String Catalog: правила
-  берутся из CLDR, новый язык добавляется правкой каталога.
-- README дополнен разделом установки, третьим эндпоинтом API и актуальной
-  структурой проекта.
+- Нативный Liquid Glass на macOS 26 с группировкой поверхностей через `GlassEffectContainer`.
+- Системное скругление окна без дополнительной рамки и второго канта.
+- Русский и английский интерфейс с автоматическим выбором языка macOS.
+- Системные формы множественного числа через String Catalog и правила CLDR.
+- Поддержка VoiceOver, клавиатурной навигации, Reduce Motion, Reduce Transparency и повышенного контраста.
+- Исправлен переход AirPods в режим пространственного аудио.
+- Обновлены README, установка, описание API и галерея скриншотов.
 
-## Из 1.3
-
-- Русский и английский интерфейс, язык выбирается по настройкам macOS.
-- Поддержка VoiceOver, навигация с клавиатуры, Reduce Motion, Reduce
-  Transparency и повышенный контраст.
-- Liquid Glass на macOS 26, материалы AppKit на macOS 14–15.
-- Двуязычное окно установщика.
-
-## Возможности
+### Возможности
 
 - Все 117 станций с поиском, жанрами и избранным.
-- Обложка и название трека — на своей станции и на всех карточках сразу.
-- Плейлист станции: что играло в эфире за последние сутки.
-- Статистика прослушивания по станциям, хранится только на этом Mac.
-- Мини-плеер поверх других приложений и плеер в строке меню.
-- Медиа-клавиши и панель «Сейчас исполняется».
-- Четыре уровня качества потока, переподключение при обрыве и после сна Mac.
+- Плейлист станции за последние сутки.
+- История треков и локальная статистика прослушивания.
+- Мини-плеер и управление из строки меню.
+- Медиаклавиши и панель «Сейчас исполняется».
+- Четыре уровня качества потока.
+- Переподключение после сетевого сбоя или сна Mac.
 
-## Проверено перед сборкой
+### Проверено
 
-- Чистая релизная сборка с `-warnings-as-errors`.
-- `codesign --verify --deep --strict`.
-- `hdiutil verify` для образа.
-- Резолв форм множественного числа при русской и английской локали.
-- Состав тома: приложение, ссылка на «Программы», фон, иконка тома, разметка Finder.
+- Релизная сборка с `-warnings-as-errors`.
+- Подпись через `codesign --verify --deep --strict`.
+- Целостность образа через `hdiutil verify`.
+- Русская и английская локализации.
+- Системные формы числа в обеих локалях.
+- Запуск приложения непосредственно из смонтированного DMG.
 
-## Права
+## English
 
-Название Radio Record, логотип, аудиопотоки и метаданные принадлежат
-правообладателю. Приложение только воспроизводит то, что отдаёт их публичный API,
-и не связано с Radio Record.
+An unofficial native Radio Record player for macOS. No browser or web view required.
+
+### Installation
+
+1. Download `Record-1.4.dmg` from the Assets section below.
+2. Open the disk image and drag Record to Applications.
+3. On first launch, right-click the app and choose **Open**.
+4. Confirm the launch in the macOS dialog.
+
+The build has a local ad-hoc signature, but it is not signed with an Apple Developer ID certificate and is not notarized. Gatekeeper may display a warning. These steps are only required for the first launch.
+
+If macOS continues to block the app:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Record.app
+```
+
+Record requires macOS 14 or later.
+
+### What is new
+
+- Native Liquid Glass on macOS 26 with surfaces grouped through `GlassEffectContainer`.
+- System window corners without a duplicate border.
+- Russian and English interfaces that follow the selected macOS language.
+- System plural rules through String Catalog and CLDR categories.
+- VoiceOver, keyboard navigation, Reduce Motion, Reduce Transparency, and increased contrast.
+- Fixed AirPods switching to spatial audio.
+- Updated README, installation guide, API notes, and screenshot gallery.
+
+### Features
+
+- All 117 stations with search, genres, and favorites.
+- Station playlist for the last 24 hours.
+- Track history and local listening statistics.
+- Mini player and menu bar controls.
+- Media keys and the Now Playing panel.
+- Four stream quality levels.
+- Automatic reconnection after network errors or Mac sleep.
+
+### Verified
+
+- Release build with `-warnings-as-errors`.
+- Signature check with `codesign --verify --deep --strict`.
+- Disk image integrity with `hdiutil verify`.
+- Russian and English localizations.
+- System plural forms in both locales.
+- App launch directly from the mounted DMG.
+
+## Disclaimer
+
+This is an unofficial project and is not affiliated with Radio Record. The Radio Record name, logo, audio streams, and metadata belong to their respective owner.
+
+Название Radio Record, логотип, аудиопотоки и метаданные принадлежат правообладателю. Это неофициальный проект, не связанный с Radio Record.

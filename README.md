@@ -1,195 +1,200 @@
-# Record — плеер Radio Record для macOS
+# Record for macOS
 
-Нативное приложение для прослушивания всех станций Radio Record без браузера.
-Собрано для личного использования на одном Mac.
+Нативный неофициальный плеер Radio Record для macOS.
 
-## Установка
+An unofficial native Radio Record player for macOS.
 
-Скачайте `Record-<версия>.dmg` из раздела Releases, откройте образ и перетащите
-приложение в «Программы».
+[Скачать Record 1.4](https://github.com/ohjohnnyoh/record-player-macos/releases/latest) · [English](#english) · [Все скриншоты](docs/screenshots)
 
-При первом запуске macOS скажет, что приложение от неустановленного разработчика:
-у сборки ad-hoc подпись, без сертификата Apple Developer ID и нотарификации.
-Это ожидаемо и обходится один раз:
+![Главное окно Record](docs/screenshots/01-all-stations.png)
 
-1. Правый клик по `Record` в «Программах» → **Открыть**.
-2. В диалоге ещё раз нажать **Открыть**.
+## Русский
 
-Дальше приложение запускается обычным двойным щелчком. Если системе не хватило
-этого, снять карантин можно вручную:
+Record позволяет слушать все станции Radio Record без браузера. Это обычное приложение для macOS: с отдельным мини-плеером, управлением из строки меню, медиаклавишами, историей треков и локальной статистикой прослушивания.
+
+Интерфейс работает на русском и английском. Язык выбирается автоматически по настройкам macOS.
+
+### Скачать и установить
+
+1. Скачайте [`Record-1.4.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/latest).
+2. Откройте образ и перетащите Record в папку «Программы».
+3. При первом запуске нажмите на приложение правой кнопкой мыши и выберите **Открыть**.
+4. Подтвердите запуск в появившемся окне.
+
+У приложения локальная ad-hoc подпись, но нет сертификата Apple Developer ID и нотарификации. Поэтому Gatekeeper может показать предупреждение. Правый клик нужен только при первом запуске.
+
+Если macOS всё равно блокирует приложение, снимите карантин вручную:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/Record.app
 ```
 
-Требуется macOS 14 или новее. На macOS 26 интерфейс использует нативный
-Liquid Glass, на более ранних — обычные материалы AppKit.
+Требуется macOS 14 или новее. На macOS 26 используется нативный Liquid Glass. На macOS 14 и 15 приложение переключается на системные материалы AppKit.
 
-## Сборка из исходников
+### Возможности
+
+- **Все 117 станций:** каталог загружается из публичного API Radio Record и сохраняется в локальный кэш.
+- **Избранное и поиск:** станции можно искать по названию и жанру, сортировать по популярности или алфавиту.
+- **Стеклянный плеер:** плавающая панель остаётся поверх каталога, а карточки прокручиваются под ней.
+- **Мини-плеер:** отдельное квадратное окно с обложкой, громкостью и управлением воспроизведением.
+- **Строка меню:** текущий трек, избранные станции и основные кнопки доступны без открытия главного окна.
+- **Плейлист станции:** показывает, что звучало в эфире за последние сутки.
+- **История и статистика:** данные хранятся только на этом Mac.
+- **Apple Music:** трек можно открыть в Apple Music или скопировать его название.
+- **Системное управление:** работают медиаклавиши, панель «Сейчас исполняется» и пространственное аудио AirPods.
+- **Четыре режима качества:** Auto HLS, 96, 64 и 32 kbps AAC+.
+- **Таймер сна:** 15, 30, 60 или 90 минут.
+- **Accessibility:** VoiceOver, управление с клавиатуры, Reduce Motion, Reduce Transparency и повышенный контраст.
+
+### Интерфейс
+
+| Избранное | История треков |
+|---|---|
+| ![Избранное](docs/screenshots/02-favorites.png) | ![История](docs/screenshots/03-history.png) |
+
+| Статистика | Плейлист станции |
+|---|---|
+| ![Статистика](docs/screenshots/04-listening-stats.png) | ![Плейлист станции](docs/screenshots/06-station-playlist.png) |
+
+| Мини-плеер | Плеер в строке меню |
+|---|---|
+| ![Мини-плеер](docs/screenshots/08-mini-player.png) | ![Плеер в строке меню](docs/screenshots/09-menubar-player.png) |
+
+[Посмотреть все 11 скриншотов](docs/screenshots)
+
+### Горячие клавиши
+
+| Клавиши | Действие |
+|---|---|
+| `Пробел` или `⌘P` | Играть или поставить на паузу |
+| `⌥⌘M` | Открыть мини-плеер |
+| `⌘→` и `⌘←` | Следующая или предыдущая станция |
+| `⇧⌘R` | Случайная станция |
+| `⌘↑` и `⌘↓` | Изменить громкость |
+| `⌘M` | Выключить или включить звук |
+
+### Сборка из исходников
 
 ```bash
 ./build.sh
 ```
 
-Скрипт компилирует релизную сборку, собирает `Record.app`, генерирует иконку из
-`Resources/logo.png`, подписывает ad-hoc подписью и кладёт приложение в `/Applications`.
-Флаг `--no-install` оставит бандл в `build/`.
+Скрипт собирает релизную версию, создаёт `Record.app`, генерирует иконку, добавляет локализации и подписывает приложение ad-hoc подписью. По умолчанию готовое приложение устанавливается в `/Applications`.
 
-Запуск:
+Собрать приложение без установки:
 
 ```bash
-open -a Record
+./build.sh --no-install
 ```
 
-### Установочный образ
+Собрать установочный DMG:
 
 ```bash
 ./package.sh
 ```
 
-Соберёт `build/Record-<версия>.dmg` — обычный установщик с перетаскиванием
-в «Программы» и иконкой тома.
+## English
 
-Приложение подписано ad-hoc подписью (без сертификата разработчика). Собранный
-на этом же Mac образ открывается без вопросов. Если DMG попадёт на другой Mac
-через интернет, Gatekeeper пометит его карантином — тогда первый запуск делается
-через правый клик по приложению → «Открыть».
+Record lets you listen to every Radio Record station without keeping a browser open. It is a native macOS app with a separate mini player, menu bar controls, media keys, track history, and local listening statistics.
 
-## Что умеет
+The interface is available in Russian and English. The app follows the language selected in macOS settings.
 
-- **Все 117 станций** — список тянется из публичного API radiorecord.ru и кэшируется
-  на диск, так что после первого запуска приложение открывается и без сети.
-- **Плавающая пилюля плеера** — как в Apple Music: не участвует в раскладке окна,
-  карточки прокручиваются под ней.
-- **Мини-плеер** (`⌥⌘M`) — квадратное окно поверх остальных приложений: обложка во всю
-  площадь, кнопки проявляются при наведении, размер тянется от 220 до 560 px с
-  пропорцией 1:1. Открывается хоткеем, кнопкой в тулбаре или кликом по обложке в пилюле.
-- **Меню-бар** — иконка в строке меню с компактным плеером: текущий трек, избранное,
-  громкость, play/pause. Окно можно закрыть, музыка продолжит играть.
-- **Сейчас играет** — исполнитель, название и обложка трека, обновляются каждые 12 секунд.
-  Видно не только для текущей станции, но и на всех карточках сразу.
-- **Избранное, поиск и фильтр по жанрам**, сортировка по популярности или алфавиту.
-- **Русский и английский интерфейс** — язык выбирается автоматически по настройкам
-  macOS, включая меню, подсказки, VoiceOver, ошибки и формы множественного числа.
-- **Акцентный цвет** — семь вариантов, выбор в тулбаре, сохраняется между запусками.
-- **Медиа-клавиши и «Сейчас исполняется»** — работают клавиши на клавиатуре и панель
-  в Пункте управления; ⏭/⏮ переключают станцию.
-- **Качество потока** — авто (HLS, до 112 kbps), 96, 64 или 32 kbps AAC+.
-  Переключается на лету, без остановки прослушивания.
-- **Авто-переподключение** — при обрыве потока (экспоненциальная задержка, до 8 попыток),
-  при возвращении сети и после пробуждения Mac.
-- **Плейлист станции** — что играло в эфире раньше: 350–400 треков за последние
-  сутки с временем выхода, обложками и ссылками в Apple Music. Открывается из
-  контекстного меню карточки или из меню в панели плеера.
-- **Статистика прослушивания** — сколько слушали каждую станцию, сколько раз
-  включали и когда были в последний раз. Хранится только на этом Mac.
-- **История треков** со ссылкой в Apple Music, **таймер сна** на 15/30/60/90 минут.
+### Download and install
 
-## Горячие клавиши
+1. Download [`Record-1.4.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/latest).
+2. Open the disk image and drag Record to Applications.
+3. On first launch, right-click the app and choose **Open**.
+4. Confirm the launch in the macOS dialog.
 
-| Клавиши | Действие |
-|---|---|
-| `Пробел` | Играть / пауза (не срабатывает, когда курсор в поле поиска) |
-| `⌘P` | Играть / пауза |
-| `⌥⌘M` | Мини-плеер |
-| `⌘→` / `⌘←` | Следующая / предыдущая станция |
-| `⇧⌘R` | Случайная станция |
-| `⌘↑` / `⌘↓` | Громче / тише |
-| `⌘M` | Выключить / включить звук |
+The app has a local ad-hoc signature, but it is not signed with an Apple Developer ID certificate and is not notarized. Gatekeeper may display a warning. The right-click step is only required for the first launch.
 
-## Про рекламу
+If macOS still blocks the app, remove the quarantine attribute manually:
 
-Всё, что относится к сайту, исчезает: ни баннеров, ни всплывающих окон, ни вкладки
-в браузере, ни рекламы вокруг плеера.
-
-Чего приложение сделать не может: если рекламный блок идёт **внутри самого эфира**,
-он приходит вместе с аудиопотоком — это те же адреса потоков, которые использует
-сайт, и вырезать их на стороне клиента нечем. Отключение эфирной рекламы у Record
-привязано к платной подписке «Премиум» на их стороне.
-
-Замер метаданных прямо из потока (9 минут, Record / Trancemission / Deep) рекламных
-блоков не выявил: на тематических каналах между треками попадаются пустые вставки
-по 4–6 секунд — это джинглы, на главном Record не было и их. Выборка короткая,
-так что это не доказательство отсутствия рекламы, а лишь наблюдение.
-
-## Заметки по реализации
-
-Несколько решений, которые неочевидны по коду:
-
-- **Материалы окна и плеера.** Фон окна остаётся одним `NSVisualEffectView` с
-  `blendingMode = .behindWindow`: обои размывает системный композитор, а карточки
-  контента не превращаются в набор тяжёлых blur-слоёв. На macOS 26 плавающий
-  плеер использует нативный `glassEffect(.regular)`; на macOS 14–15 — один
-  `NSVisualEffectView` с `blendingMode = .withinWindow`. При включённых Reduce
-  Transparency или Increase Contrast поверхность автоматически становится
-  плотнее и контрастнее.
-- **Списки для интерфейса предсчитаны.** `visibleStations`, `genres` и поисковый
-  индекс — хранимые свойства, а не вычисляемые: иначе сортировка 117 станций
-  выполнялась бы на каждую перерисовку.
-- **`StationCard` не подписана на состояние** и сравнивается через `Equatable` —
-  перерисовка пропускается, когда меняется что-то чужое.
-- **Громкость идёт мимо `AppState`** (`VolumeSlider` слушает плеер напрямую),
-  иначе каждое движение ползунка перерисовывало бы всю сетку.
-- **Пространственное аудио объявлено явно.** Радио приходит как mono/stereo
-  audio-only, а AVFoundation по умолчанию ждёт от такого контента многоканальный
-  сигнал. `allowedAudioSpatializationFormats = .monoAndStereo` оставляет выбор
-  режима пользователю и не рвёт поток при переключении AirPods.
-- **Картинки декодируются сразу в нужный размер** через ImageIO: иконки приходят
-  600 px, а показываются в 72.
-- **Пробел** обрабатывается локальным монитором событий, а не пунктом меню:
-  меню перехватывает клавишу раньше поля поиска, и пробел в нём не печатался бы.
-- **Стеклянные поверхности сгруппированы.** Liquid Glass не умеет сэмплировать
-  другое стекло, поэтому и пилюля плеера, и транспорт мини-плеера обёрнуты в
-  `GlassEffectContainer` — соседние стеклянные детали остаются согласованными.
-- **Скругление окна рисует система.** Свои `cornerRadius` и рамка поверх
-  системных давали второй кант и уступ, когда радиус macOS не совпадал с нашим.
-- **Формы множественного числа живут в String Catalog**, а не в Swift: каталог
-  хранит вариации по категориям CLDR и компилируется в `Localizable.stringsdict`.
-  Новый язык добавляется правкой каталога, без единой строки кода.
-
-## Структура
-
-```
-Sources/RecordPlayer/
-  App/RecordPlayerApp.swift      точка входа, три сцены, меню и хоткеи
-  Models/                        Station, Track, история
-  Services/RecordAPI.swift       два эндпоинта API + файловый кэш
-  Services/AudioPlayer.swift     AVPlayer, переподключение, громкость
-  Services/RemoteControl.swift   медиа-клавиши и «Сейчас исполняется»
-  Services/ImageLoader.swift     кэш картинок с уменьшением при декодировании
-  Models/PlaylistTrack.swift     запись плейлиста станции
-  Models/StationStat.swift       статистика прослушивания и её хранилище
-  State/AppState.swift           состояние, фильтры, избранное, настройки
-  Localization/L10n.swift        динамические строки и формы множественного числа
-  Views/StationGridView.swift    сетка станций
-  Views/PlayerBar.swift          плавающая пилюля плеера
-  Views/MiniPlayerView.swift     окно поверх других приложений
-  Views/MenuBarView.swift        плеер в строке меню
-  Views/HistoryView.swift        история треков и переключатель разделов
-  Views/StationStatsView.swift   статистика по станциям
-  Views/StationPlaylistView.swift плейлист эфира станции
-  Views/                         тема, акцент, громкость, поддержка окон
-Resources/*.xcstrings            русский и английский String Catalog
-docs/screenshots/                снимки интерфейса для страницы проекта
-tools/makeicon.swift             генератор иконки из логотипа (CoreGraphics)
-build.sh                         сборка .app и установка в /Applications
-package.sh                       сборка установочного образа .dmg
+```bash
+xattr -dr com.apple.quarantine /Applications/Record.app
 ```
 
-После установки `build.sh` перерегистрирует приложение в LaunchServices и
-перезапускает Dock: без этого Finder продолжает показывать закэшированную
-стандартную иконку, даже когда в бандле лежит новая.
+Record requires macOS 14 or later. It uses native Liquid Glass on macOS 26 and AppKit materials on macOS 14 and 15.
 
-Кэш и настройки — в `~/Library/Application Support/RecordPlayer/`
-и в `UserDefaults` домена `ru.local.recordplayer`.
+### Features
 
-## Использованное API
+- **All 117 stations:** the catalog comes from the public Radio Record API and is cached locally.
+- **Favorites and search:** find stations by name or genre, then sort by popularity or alphabetically.
+- **Glass player bar:** the floating player stays above the catalog while station cards scroll underneath it.
+- **Mini player:** a separate square window with artwork, volume, and playback controls.
+- **Menu bar player:** see the current track, favorite stations, and essential controls without opening the main window.
+- **Station playlist:** review tracks played during the last 24 hours.
+- **History and statistics:** listening data stays on your Mac.
+- **Apple Music:** open a track in Apple Music or copy its title.
+- **System controls:** media keys, Now Playing, and AirPods spatial audio are supported.
+- **Four quality modes:** Auto HLS, 96, 64, and 32 kbps AAC+.
+- **Sleep timer:** 15, 30, 60, or 90 minutes.
+- **Accessibility:** VoiceOver, keyboard navigation, Reduce Motion, Reduce Transparency, and increased contrast.
 
-| Запрос | Назначение |
+### Interface
+
+| Main window in English | Player options |
 |---|---|
-| `GET /api/stations/` | список станций, иконки, адреса потоков, жанры |
-| `GET /api/stations/now/` | текущий трек сразу для всех станций (~22 КБ) |
-| `GET /api/station/history/?id=` | плейлист станции: 350–400 треков за последние сутки |
+| ![English interface](docs/screenshots/11-all-stations-english.png) | ![Player options](docs/screenshots/07-player-options.png) |
 
-Аудиопотоки, метаданные и логотип принадлежат Radio Record; приложение только
-воспроизводит то, что отдаёт их публичный API.
+| Search | Accent colors |
+|---|---|
+| ![Search](docs/screenshots/05-search.png) | ![Accent colors](docs/screenshots/10-accent-palettes.png) |
+
+[View all 11 screenshots](docs/screenshots)
+
+### Keyboard shortcuts
+
+| Keys | Action |
+|---|---|
+| `Space` or `⌘P` | Play or pause |
+| `⌥⌘M` | Open the mini player |
+| `⌘→` and `⌘←` | Next or previous station |
+| `⇧⌘R` | Play a random station |
+| `⌘↑` and `⌘↓` | Change volume |
+| `⌘M` | Mute or unmute |
+
+### Build from source
+
+```bash
+./build.sh
+```
+
+The script creates a release build, assembles `Record.app`, generates the icon, adds localizations, and applies an ad-hoc signature. By default, it installs the finished app in `/Applications`.
+
+Build without installing:
+
+```bash
+./build.sh --no-install
+```
+
+Build the installer DMG:
+
+```bash
+./package.sh
+```
+
+## Technical notes
+
+- SwiftUI and AppKit, minimum deployment target macOS 14.
+- Native `glassEffect` and `GlassEffectContainer` on macOS 26.
+- `NSVisualEffectView` fallback on macOS 14 and 15.
+- `AVPlayer` playback with automatic reconnection after network errors and Mac sleep.
+- Mono and stereo spatialization is explicitly enabled for AirPods.
+- Russian and English String Catalogs with system plural rules.
+- ImageIO downsamples station icons and artwork during decoding.
+- Favorites, history, statistics, and settings are stored locally.
+
+### Public API endpoints
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/stations/` | Station catalog, artwork, streams, and genres |
+| `GET /api/stations/now/` | Current track for all stations |
+| `GET /api/station/history/?id=` | Recent playlist for one station |
+
+## Disclaimer
+
+This is an unofficial project and is not affiliated with Radio Record. The Radio Record name, logo, audio streams, and metadata belong to their respective owner. The app only plays data provided by the public Radio Record API.
+
+Название Radio Record, логотип, аудиопотоки и метаданные принадлежат правообладателю. Это неофициальный проект, не связанный с Radio Record.

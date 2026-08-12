@@ -1,4 +1,4 @@
-# Record — screenshot gallery
+# Record screenshot gallery
 
 Финальный набор скриншотов интерфейса для README, релизных заметок и страницы проекта.
 
