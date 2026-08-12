@@ -185,6 +185,13 @@ final class AudioPlayer: ObservableObject {
             ]
         ])
         let item = AVPlayerItem(asset: asset)
+        // Радиопотоки приходят как mono/stereo audio-only. Для таких материалов
+        // AVFoundation по умолчанию разрешает пространственную обработку только
+        // многоканального сигнала, поэтому переключатель AirPods фактически
+        // перестраивал маршрут для формата, который item не объявлял допустимым.
+        // Явно разрешаем штатную spatialization для реального формата эфира;
+        // конкретный режим по-прежнему выбирает пользователь в Пункте управления.
+        item.allowedAudioSpatializationFormats = .monoAndStereo
         item.preferredForwardBufferDuration = 4
 
         observeItem(item)
@@ -203,7 +210,7 @@ final class AudioPlayer: ObservableObject {
         itemObservations.append(
             item.observe(\.status, options: [.new]) { [weak self] item, _ in
                 let failed = item.status == .failed
-                let message = item.error?.localizedDescription ?? "Не удалось открыть поток"
+                let message = item.error?.localizedDescription ?? L10n.string("Не удалось открыть поток")
                 Task { @MainActor in
                     guard let self, failed else { return }
                     self.handleFailure(message)
@@ -219,7 +226,7 @@ final class AudioPlayer: ObservableObject {
             ) { [weak self] note in
                 let error = note.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error
                 Task { @MainActor in
-                    self?.handleFailure(error?.localizedDescription ?? "Поток прервался")
+                    self?.handleFailure(error?.localizedDescription ?? L10n.string("Поток прервался"))
                 }
             }
         )
@@ -229,7 +236,7 @@ final class AudioPlayer: ObservableObject {
                 object: item, queue: .main
             ) { [weak self] _ in
                 // Живой эфир «закончиться» не должен — значит, соединение оборвалось.
-                Task { @MainActor in self?.scheduleReconnect(reason: "Соединение закрылось") }
+                Task { @MainActor in self?.scheduleReconnect(reason: L10n.string("Соединение закрылось")) }
             }
         )
         notificationTokens.append(
@@ -274,7 +281,7 @@ final class AudioPlayer: ObservableObject {
             try? await Task.sleep(for: .seconds(15))
             guard !Task.isCancelled, let self else { return }
             guard self.player.timeControlStatus != .playing, self.state.isActive else { return }
-            self.scheduleReconnect(reason: "Поток не отвечает")
+            self.scheduleReconnect(reason: L10n.string("Поток не отвечает"))
         }
     }
 

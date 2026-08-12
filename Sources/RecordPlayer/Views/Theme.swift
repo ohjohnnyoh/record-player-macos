@@ -1,12 +1,17 @@
 import SwiftUI
 
 enum Theme {
-    static let background = Color(red: 0.055, green: 0.055, blue: 0.065)
-    static let separator = Color.white.opacity(0.08)
-    static let secondaryText = Color.white.opacity(0.55)
-    static let tertiaryText = Color.white.opacity(0.35)
+    /// Системные семантические цвета автоматически учитывают активность окна,
+    /// повышенный контраст и будущие изменения внешнего вида macOS.
+    static let background = Color(nsColor: .windowBackgroundColor)
+    static let opaqueBackground = Color(red: 0.075, green: 0.075, blue: 0.085)
+    static let separator = Color(nsColor: .separatorColor)
+    static let secondaryText = Color(nsColor: .secondaryLabelColor)
+    static let tertiaryText = Color(nsColor: .tertiaryLabelColor)
 
+    static let windowRadius: CGFloat = 18
     static let cardRadius: CGFloat = 12
+    static let playerRadius: CGFloat = 18
 }
 
 // MARK: - Карточка
@@ -18,6 +23,9 @@ enum Theme {
 /// Сорок восемь отдельных blur-слоёв клали композитор на лопатки,
 /// эта версия не стоит практически ничего.
 struct GlassCard: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
+
     var hovered: Bool = false
     var selected: Bool = false
     var radius: CGFloat = Theme.cardRadius
@@ -40,15 +48,28 @@ struct GlassCard: ViewModifier {
                         .strokeBorder(selectedBorder, lineWidth: 1.2)
                 } else {
                     RoundedRectangle(cornerRadius: radius, style: .continuous)
-                        .strokeBorder(.white.opacity(hovered ? 0.30 : 0.16), lineWidth: 1)
+                        .strokeBorder(
+                            .white.opacity(borderOpacity),
+                            lineWidth: contrast == .increased ? 1.2 : 1
+                        )
                 }
             }
     }
 
     private var fill: Color {
-        if selected { .white.opacity(0.13) }
-        else if hovered { .white.opacity(0.10) }
-        else { .white.opacity(0.05) }
+        if reduceTransparency {
+            if selected { return Color(red: 0.18, green: 0.18, blue: 0.20) }
+            if hovered { return Color(red: 0.145, green: 0.145, blue: 0.16) }
+            return Color(red: 0.105, green: 0.105, blue: 0.12)
+        }
+        if selected { return .white.opacity(0.13) }
+        if hovered { return .white.opacity(0.10) }
+        return .white.opacity(0.05)
+    }
+
+    private var borderOpacity: Double {
+        if contrast == .increased { return hovered ? 0.52 : 0.34 }
+        return hovered ? 0.30 : 0.16
     }
 
     /// Бортик светлеет сверху-слева и гаснет снизу-справа — как отблеск на грани стекла.

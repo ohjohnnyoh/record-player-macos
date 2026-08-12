@@ -1,0 +1,22 @@
+{
+  "sourceLanguage" : "ru",
+  "strings" : {
+    "NSHumanReadableCopyright" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personal player. Audio streams belong to Radio Record."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Личный плеер. Аудиопотоки принадлежат Radio Record."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -12,8 +12,8 @@ struct HistoryView: View {
         var id: String { rawValue }
         var title: String {
             switch self {
-            case .tracks: "Треки"
-            case .stations: "Станции"
+            case .tracks: L10n.string("Треки")
+            case .stations: L10n.string("Станции")
             }
         }
     }
@@ -45,7 +45,7 @@ struct HistoryView: View {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.system(size: 34, weight: .light))
                         .foregroundStyle(Theme.tertiaryText)
-                    Text(state.history.isEmpty ? "История пуста" : "Ничего не найдено")
+                    Text(L10n.string(state.history.isEmpty ? "История пуста" : "Ничего не найдено"))
                         .font(.headline)
                     Text("Здесь копятся треки, которые играли, пока вы слушали.")
                         .font(.subheadline)
@@ -64,7 +64,7 @@ struct HistoryView: View {
                 }
                 .safeAreaInset(edge: .top) {
                     HStack {
-                        Text("\(filtered.count) треков")
+                        Text(L10n.trackCount(filtered.count))
                             .font(.system(size: 11))
                             .foregroundStyle(Theme.tertiaryText)
                         Spacer()
@@ -74,7 +74,7 @@ struct HistoryView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .background(.ultraThinMaterial)
+                    .background(.bar)
                 }
             }
         }
@@ -92,6 +92,7 @@ struct HistoryView: View {
 
 private struct HistoryRow: View {
     @Environment(\.appAccent) private var accent
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     let entry: HistoryEntry
     @EnvironmentObject private var state: AppState
     @State private var hovered = false
@@ -119,7 +120,7 @@ private struct HistoryRow: View {
                 .font(.system(size: 10.5))
                 .foregroundStyle(Theme.tertiaryText)
 
-            if hovered {
+            if hovered || voiceOverEnabled {
                 if let url = entry.itunesUrl.flatMap(URL.init(string:)) {
                     Button {
                         NSWorkspace.shared.open(url)
@@ -139,7 +140,7 @@ private struct HistoryRow: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Theme.secondaryText)
-                .help("Включить \(entry.stationTitle)")
+                .help(L10n.format("Включить %@", entry.stationTitle))
             }
         }
         .padding(.horizontal, 10)
@@ -155,6 +156,9 @@ private struct HistoryRow: View {
             }
         }
         .onHover { hovered = $0 }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(entry.displayTitle)
+        .accessibilityValue("\(entry.stationTitle), \(entry.date.formatted(date: .omitted, time: .shortened))")
         .contextMenu {
             Button("Скопировать название") {
                 NSPasteboard.general.clearContents()

@@ -12,9 +12,9 @@ enum SidebarSection: String, Hashable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .all: "Все станции"
-        case .favorites: "Избранное"
-        case .history: "История"
+        case .all: L10n.string("Все станции")
+        case .favorites: L10n.string("Избранное")
+        case .history: L10n.string("История")
         }
     }
 
@@ -34,8 +34,8 @@ enum SortOrder: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .popularity: "По популярности"
-        case .alphabet: "По алфавиту"
+        case .popularity: L10n.string("По популярности")
+        case .alphabet: L10n.string("По алфавиту")
         }
     }
 }

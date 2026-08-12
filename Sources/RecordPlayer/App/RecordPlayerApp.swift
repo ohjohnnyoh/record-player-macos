@@ -33,7 +33,7 @@ struct RecordPlayerApp: App {
             CommandMenu("Воспроизведение") {
                 // Пробел вешаем не через меню, а локальным монитором событий:
                 // иначе он перехватывался бы при вводе в поле поиска.
-                Button(state.player.state.isActive ? "Пауза" : "Играть") {
+                Button(L10n.string(state.player.state.isActive ? "Пауза" : "Играть")) {
                     state.togglePlayPause()
                 }
                 .keyboardShortcut("p", modifiers: .command)
@@ -47,7 +47,7 @@ struct RecordPlayerApp: App {
 
                 Divider()
 
-                Button(state.player.isMuted ? "Включить звук" : "Выключить звук") {
+                Button(L10n.string(state.player.isMuted ? "Включить звук" : "Выключить звук")) {
                     state.player.isMuted.toggle()
                 }
                 .keyboardShortcut("m", modifiers: .command)

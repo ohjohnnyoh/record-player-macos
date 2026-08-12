@@ -15,13 +15,13 @@ enum AccentPalette: String, CaseIterable, Identifiable, Codable {
 
     var title: String {
         switch self {
-        case .red: "Красный"
-        case .gray: "Нейтральный"
-        case .orange: "Оранжевый"
-        case .green: "Зелёный"
-        case .cyan: "Голубой"
-        case .pink: "Розовый"
-        case .purple: "Фиолетовый"
+        case .red: L10n.string("Красный")
+        case .gray: L10n.string("Нейтральный")
+        case .orange: L10n.string("Оранжевый")
+        case .green: L10n.string("Зелёный")
+        case .cyan: L10n.string("Голубой")
+        case .pink: L10n.string("Розовый")
+        case .purple: L10n.string("Фиолетовый")
         }
     }
 
@@ -76,6 +76,8 @@ struct AccentMenuButton: View {
             }
             .contentShape(Rectangle())
         }
+        .accessibilityLabel("Акцентный цвет")
+        .accessibilityValue(selection.title)
         .help("Акцентный цвет")
         .popover(isPresented: $isPresented, arrowEdge: .bottom) {
             VStack(alignment: .leading, spacing: 1) {

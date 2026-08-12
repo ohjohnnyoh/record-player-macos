@@ -4,6 +4,7 @@ import SwiftUI
 /// Компактный плеер в меню-баре: слушать можно, не открывая окно.
 struct MenuBarView: View {
     @Environment(\.appAccent) private var accent
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @EnvironmentObject private var state: AppState
     @Environment(\.openWindow) private var openWindow
 
@@ -21,7 +22,9 @@ struct MenuBarView: View {
             footer
         }
         .frame(width: 320)
-        .background(Theme.background)
+        // MenuBarExtra уже предоставляет системный popover-материал. Не закрываем
+        // его собственной плашкой; непрозрачность нужна только по accessibility.
+        .background(reduceTransparency ? Theme.opaqueBackground : .clear)
     }
 
     // MARK: - Шапка с текущим треком
@@ -45,7 +48,7 @@ struct MenuBarView: View {
             .frame(width: 44, height: 44)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(track?.displayTitle ?? state.currentStation?.title ?? "Ничего не играет")
+                Text(track?.displayTitle ?? state.currentStation?.title ?? L10n.string("Ничего не играет"))
                     .font(.system(size: 12, weight: .semibold))
                     .lineLimit(2)
                 if let station = state.currentStation {
@@ -73,6 +76,7 @@ struct MenuBarView: View {
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(L10n.string(state.player.state.isActive ? "Пауза" : "Играть"))
             .disabled(state.currentStation == nil && state.stations.isEmpty)
         }
         .padding(12)
@@ -89,7 +93,7 @@ struct MenuBarView: View {
                     .foregroundStyle(Theme.tertiaryText)
                     .padding(12)
             } else {
-                Text(state.favoriteStations.isEmpty ? "Популярные" : "Избранное")
+                Text(L10n.string(state.favoriteStations.isEmpty ? "Популярные" : "Избранное"))
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(Theme.tertiaryText)
                     .padding(.horizontal, 12)
@@ -136,6 +140,7 @@ struct MenuBarView: View {
                 } label: {
                     Image(systemName: "shuffle")
                 }
+                .accessibilityLabel("Случайная станция")
                 .help("Случайная станция")
 
                 Spacer()

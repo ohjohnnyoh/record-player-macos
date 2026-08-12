@@ -13,12 +13,15 @@ import SwiftUI
 struct VisualEffectBackground: NSViewRepresentable {
     var material: NSVisualEffectView.Material = .underWindowBackground
     var blending: NSVisualEffectView.BlendingMode = .behindWindow
+    var state: NSVisualEffectView.State = .followsWindowActiveState
+    var isEmphasized = false
 
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
         view.material = material
         view.blendingMode = blending
-        view.state = .active
+        view.state = state
+        view.isEmphasized = isEmphasized
         return view
     }
 
@@ -29,6 +32,8 @@ struct VisualEffectBackground: NSViewRepresentable {
         // бесконечная петля, съедавшая проценты процессора на ровном месте.
         if view.material != material { view.material = material }
         if view.blendingMode != blending { view.blendingMode = blending }
+        if view.state != state { view.state = state }
+        if view.isEmphasized != isEmphasized { view.isEmphasized = isEmphasized }
     }
 }
 

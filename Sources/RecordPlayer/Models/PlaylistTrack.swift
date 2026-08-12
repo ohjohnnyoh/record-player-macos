@@ -21,7 +21,7 @@ struct PlaylistTrack: Codable, Identifiable, Hashable {
 
     var displayTitle: String {
         switch (displayArtist.isEmpty, displaySong.isEmpty) {
-        case (true, true): "Без названия"
+        case (true, true): L10n.string("Без названия")
         case (false, true): displayArtist
         case (true, false): displaySong
         case (false, false): "\(displayArtist) — \(displaySong)"

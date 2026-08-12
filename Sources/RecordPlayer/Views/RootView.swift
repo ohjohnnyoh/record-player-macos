@@ -3,6 +3,7 @@ import SwiftUI
 
 struct RootView: View {
     @Environment(\.appAccent) private var accent
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @EnvironmentObject private var state: AppState
     @Environment(\.openWindow) private var openWindow
 
@@ -37,12 +38,31 @@ struct RootView: View {
         // складывались два размытия. Вдобавок колонка меняет размер каждый кадр
         // при выезде сайдбара, и система пересчитывала размытие обоев на каждом.
         // Здесь размер backdrop равен окну и во время анимации не меняется.
-        .background(VisualEffectBackground().ignoresSafeArea())
+        .background { windowSurface.ignoresSafeArea() }
         .windowContainerClearBackground()
         .background(WindowConfigurator { window in
+            // Единая full-size поверхность даёт настоящие скругления по всему
+            // периметру, включая нижние углы. Заголовок и контент теперь лежат
+            // внутри одного непрерывного стеклянного контейнера.
+            window.styleMask.insert(.fullSizeContentView)
+            window.titlebarAppearsTransparent = true
+            window.titleVisibility = .hidden
+            window.titlebarSeparatorStyle = .none
+
             // Без этого система не пропустит обои рабочего стола сквозь окно.
             window.isOpaque = false
             window.backgroundColor = .clear
+            window.hasShadow = true
+
+            if let contentView = window.contentView {
+                contentView.wantsLayer = true
+                contentView.layer?.backgroundColor = NSColor.clear.cgColor
+                contentView.layer?.cornerRadius = Theme.windowRadius
+                contentView.layer?.cornerCurve = .continuous
+                contentView.layer?.masksToBounds = true
+                contentView.layer?.borderWidth = 0.7
+                contentView.layer?.borderColor = NSColor.white.withAlphaComponent(0.14).cgColor
+            }
         })
         .sheet(item: $state.playlistStation) { station in
             StationPlaylistView(station: station)
@@ -52,18 +72,25 @@ struct RootView: View {
         .tint(accent)
     }
 
+    @ViewBuilder
+    private var windowSurface: some View {
+        if reduceTransparency {
+            Theme.opaqueBackground
+        } else {
+            VisualEffectBackground()
+        }
+    }
+
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .navigation) {
+        ToolbarItemGroup(placement: .navigation) {
             Button {
                 state.playRandom()
             } label: {
                 Label("Случайная станция", systemImage: "shuffle")
             }
             .help("Случайная станция (⇧⌘R)")
-        }
 
-        ToolbarItem(placement: .navigation) {
             Button {
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "mini")
@@ -73,15 +100,13 @@ struct RootView: View {
             .help("Мини-плеер (⌥⌘M)")
         }
 
-        ToolbarItem(placement: .primaryAction) {
+        ToolbarItemGroup(placement: .primaryAction) {
             Picker("Сортировка", selection: $state.sortOrder) {
                 ForEach(SortOrder.allCases) { Text($0.title).tag($0) }
             }
             .pickerStyle(.menu)
             .frame(width: 165)
-        }
 
-        ToolbarItem(placement: .primaryAction) {
             AccentMenuButton(selection: $state.accent)
         }
     }
@@ -92,30 +117,23 @@ struct RootView: View {
 struct SidebarView: View {
     @Environment(\.appAccent) private var accent
     @EnvironmentObject private var state: AppState
+    @FocusState private var focusedSection: SidebarSection?
 
     var body: some View {
-        List(selection: Binding(
-            get: { state.section },
-            set: { newValue in
-                if let newValue { state.section = newValue }
-            }
-        )) {
+        List {
             Section {
                 ForEach(SidebarSection.allCases) { item in
-                    Label {
-                        HStack {
-                            Text(item.title)
-                            Spacer()
-                            if item == .favorites, !state.favorites.isEmpty {
-                                Text("\(state.favorites.count)")
-                                    .font(.caption)
-                                    .foregroundStyle(Theme.tertiaryText)
-                            }
-                        }
-                    } icon: {
-                        Image(systemName: item.icon)
+                    Button {
+                        state.section = item
+                    } label: {
+                        sidebarRow(for: item)
                     }
-                    .tag(item)
+                    .buttonStyle(.plain)
+                    .focused($focusedSection, equals: item)
+                    .focusEffectDisabled()
+                    .listRowInsets(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
+                    .listRowBackground(Color.clear)
+                    .accessibilityValue(item == state.section ? L10n.string("Выбрано") : "")
                 }
             }
 
@@ -125,7 +143,7 @@ struct SidebarView: View {
                         state.selectedGenre = nil
                         if state.section == .history { state.section = .all }
                     } label: {
-                        genreRow(title: "Все жанры", active: state.selectedGenre == nil)
+                        genreRow(title: L10n.string("Все жанры"), active: state.selectedGenre == nil)
                     }
                     .buttonStyle(.plain)
 
@@ -146,6 +164,43 @@ struct SidebarView: View {
             if state.stations.isEmpty && state.isLoadingStations {
                 ProgressView().controlSize(.small).padding(.bottom, 10)
             }
+        }
+    }
+
+    private func sidebarRow(for item: SidebarSection) -> some View {
+        let selected = item == state.section
+        let focused = item == focusedSection
+
+        return HStack(spacing: 9) {
+            Image(systemName: item.icon)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(selected ? accent : Color.primary)
+                .frame(width: 16)
+
+            Text(item.title)
+                .font(.system(size: 13, weight: selected ? .semibold : .medium))
+
+            Spacer(minLength: 8)
+
+            if item == .favorites, !state.favorites.isEmpty {
+                Text("\(state.favorites.count)")
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .foregroundStyle(Theme.tertiaryText)
+            }
+        }
+        .padding(.horizontal, 9)
+        .frame(height: 30)
+        .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(selected ? Color.primary.opacity(0.10) : .clear)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(
+                    focused ? accent.opacity(0.80) : Color.white.opacity(selected ? 0.10 : 0),
+                    lineWidth: focused ? 1.5 : 1
+                )
         }
     }
 

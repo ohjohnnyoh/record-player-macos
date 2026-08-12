@@ -24,6 +24,11 @@ cp "$BIN" "$APP/Contents/MacOS/RecordPlayer"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
+echo "==> Локализации"
+for catalog in "$ROOT"/Resources/*.xcstrings; do
+    xcrun xcstringstool compile "$catalog" --output-directory "$APP/Contents/Resources"
+done
+
 echo "==> Иконка"
 ICON_TMP="$BUILD_DIR/icon"
 rm -rf "$ICON_TMP" && mkdir -p "$ICON_TMP/AppIcon.iconset"

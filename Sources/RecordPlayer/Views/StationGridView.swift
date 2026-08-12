@@ -12,9 +12,9 @@ struct StationGridView: View {
             if let error = state.loadError, state.stations.isEmpty {
                 emptyState(
                     icon: "wifi.exclamationmark",
-                    title: "Не удалось загрузить станции",
+                    title: L10n.string("Не удалось загрузить станции"),
                     subtitle: error,
-                    action: ("Повторить", { Task { await state.loadStations() } })
+                    action: (L10n.string("Повторить"), { Task { await state.loadStations() } })
                 )
             } else if state.stations.isEmpty && state.isLoadingStations {
                 ProgressView("Загружаем станции…")
@@ -22,11 +22,15 @@ struct StationGridView: View {
             } else if state.visibleStations.isEmpty {
                 emptyState(
                     icon: state.section == .favorites ? "heart" : "magnifyingglass",
-                    title: state.section == .favorites ? "Пока нет избранного" : "Ничего не найдено",
+                    title: L10n.string(
+                        state.section == .favorites ? "Пока нет избранного" : "Ничего не найдено"
+                    ),
                     subtitle: state.section == .favorites
-                        ? "Нажмите на сердечко на карточке станции, чтобы добавить её сюда."
-                        : "Попробуйте изменить запрос или сбросить фильтр по жанру.",
-                    action: state.selectedGenre != nil ? ("Сбросить жанр", { state.selectedGenre = nil }) : nil
+                        ? L10n.string("Нажмите на сердечко на карточке станции, чтобы добавить её сюда.")
+                        : L10n.string("Попробуйте изменить запрос или сбросить фильтр по жанру."),
+                    action: state.selectedGenre != nil
+                        ? (L10n.string("Сбросить жанр"), { state.selectedGenre = nil })
+                        : nil
                 )
             } else {
                 ScrollView {
@@ -108,6 +112,7 @@ struct StationCard: View, Equatable {
     let onToggleFavorite: () -> Void
     let onShowPlaylist: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isHovered = false
 
     static func == (lhs: StationCard, rhs: StationCard) -> Bool {
@@ -121,63 +126,71 @@ struct StationCard: View, Equatable {
     }
 
     var body: some View {
+        cardContent
+            .modifier(StationCardInteraction(
+                hovered: $isHovered,
+                reduceMotion: reduceMotion,
+                isCurrent: isCurrent,
+                accent: accent,
+                helpText: helpText,
+                action: onPlay
+            ))
+            .modifier(StationCardAccessibility(
+                label: station.title,
+                value: accessibilityValue,
+                hint: L10n.string(
+                    isPlaying
+                        ? "Двойное нажатие ставит эфир на паузу"
+                        : "Двойное нажатие включает станцию"
+                ),
+                action: onPlay
+            ))
+            .contextMenu { stationContextMenu }
+    }
+
+    private var cardContent: some View {
         VStack(spacing: 0) {
-            ZStack {
-                CachedImage(url: station.iconURL, contentMode: .fit, maxPixel: 160) {
-                    Image(systemName: "waveform")
-                        .font(.system(size: 30, weight: .ultraLight))
-                        .foregroundStyle(Theme.tertiaryText)
-                }
-                .frame(width: 72, height: 72)
-                .opacity(isHovered || isCurrent ? 0.25 : 0.85)
-
-                if isHovered || isCurrent {
-                    playIndicator
-                }
-            }
-            .frame(height: 92)
-            .frame(maxWidth: .infinity)
-
-            VStack(spacing: 2) {
-                Text(station.title)
-                    .font(.system(size: 12.5, weight: .medium))
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(isCurrent ? accent : Color.primary)
-
-                Text(track?.displayTitle ?? station.tooltip ?? "")
-                    .font(.system(size: 10.5))
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .foregroundStyle(Theme.tertiaryText)
-            }
-            .padding(.horizontal, 8)
-            .padding(.bottom, 10)
-            .frame(maxWidth: .infinity)
+            artworkBlock
+            labelsBlock
         }
         .frame(height: 148)
         .glassCard(hovered: isHovered, selected: isCurrent, accent: accent)
         .overlay(alignment: .topTrailing) { favoriteButton }
-        .contentShape(Rectangle())
-        .onTapGesture(perform: onPlay)
-        .onHover { isHovered = $0 }
-        .help(helpText)
-        .animation(.easeOut(duration: 0.15), value: isHovered)
-        .contextMenu {
-            Button(isPlaying ? "Пауза" : "Слушать", action: onPlay)
-            Button("Что играло раньше…", action: onShowPlaylist)
-            Button(isFavorite ? "Убрать из избранного" : "В избранное", action: onToggleFavorite)
-            if let track, let url = track.itunesUrl.flatMap(URL.init(string:)) {
-                Divider()
-                Button("Открыть трек в Apple Music") { NSWorkspace.shared.open(url) }
+    }
+
+    private var artworkBlock: some View {
+        ZStack {
+            CachedImage(url: station.iconURL, contentMode: .fit, maxPixel: 160) {
+                Image(systemName: "waveform")
+                    .font(.system(size: 30, weight: .ultraLight))
+                    .foregroundStyle(Theme.tertiaryText)
             }
-            if let track, !track.displayTitle.isEmpty {
-                Button("Скопировать название трека") {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(track.displayTitle, forType: .string)
-                }
-            }
+            .frame(width: 72, height: 72)
+            .opacity(isHovered || isCurrent ? 0.25 : 0.85)
+
+            if isHovered || isCurrent { playIndicator }
         }
+        .frame(height: 92)
+        .frame(maxWidth: .infinity)
+    }
+
+    private var labelsBlock: some View {
+        VStack(spacing: 2) {
+            Text(station.title)
+                .font(.system(size: 12.5, weight: .medium))
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(isCurrent ? accent : Color.primary)
+
+            Text(subtitleText)
+                .font(.system(size: 10.5))
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .foregroundStyle(Theme.tertiaryText)
+        }
+        .padding(.horizontal, 8)
+        .padding(.bottom, 10)
+        .frame(maxWidth: .infinity)
     }
 
     private var playIndicator: some View {
@@ -202,13 +215,109 @@ struct StationCard: View, Equatable {
         }
         .buttonStyle(.plain)
         .opacity(isFavorite || isHovered ? 1 : 0)
-        .help(isFavorite ? "Убрать из избранного" : "В избранное")
+        .accessibilityLabel(
+            isFavorite
+                ? L10n.format("Убрать %@ из избранного", station.title)
+                : L10n.format("Добавить %@ в избранное", station.title)
+        )
+        .help(L10n.string(isFavorite ? "Убрать из избранного" : "В избранное"))
+    }
+
+    private var accessibilityValue: String {
+        var parts: [String] = []
+        if isPlaying { parts.append(L10n.string("Воспроизводится")) }
+        else if isConnecting { parts.append(L10n.string("Подключение")) }
+        if isFavorite { parts.append(L10n.string("В избранном")) }
+        if let track, !track.displayTitle.isEmpty {
+            parts.append(L10n.format("Сейчас: %@", track.displayTitle))
+        }
+        return parts.joined(separator: ", ")
+    }
+
+    private var subtitleText: String {
+        track?.displayTitle ?? station.tooltip ?? ""
+    }
+
+    @ViewBuilder
+    private var stationContextMenu: some View {
+        Button(L10n.string(isPlaying ? "Пауза" : "Слушать"), action: onPlay)
+        Button("Что играло раньше…", action: onShowPlaylist)
+        Button(
+            L10n.string(isFavorite ? "Убрать из избранного" : "В избранное"),
+            action: onToggleFavorite
+        )
+        if let track, let url = track.itunesUrl.flatMap(URL.init(string:)) {
+            Divider()
+            Button("Открыть трек в Apple Music") { NSWorkspace.shared.open(url) }
+        }
+        if let track, !track.displayTitle.isEmpty {
+            Button("Скопировать название трека") {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(track.displayTitle, forType: .string)
+            }
+        }
     }
 
     private var helpText: String {
         var parts = [station.title]
         if let tooltip = station.tooltip, !tooltip.isEmpty { parts.append(tooltip) }
-        if let track, !track.displayTitle.isEmpty { parts.append("Сейчас: \(track.displayTitle)") }
+        if let track, !track.displayTitle.isEmpty {
+            parts.append(L10n.format("Сейчас: %@", track.displayTitle))
+        }
         return parts.joined(separator: "\n")
+    }
+}
+
+private struct StationCardInteraction: ViewModifier {
+    @Environment(\.isFocused) private var isFocused
+
+    @Binding var hovered: Bool
+    let reduceMotion: Bool
+    let isCurrent: Bool
+    let accent: Color
+    let helpText: String
+    let action: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .contentShape(Rectangle())
+            .onTapGesture(perform: action)
+            .focusable(interactions: .activate)
+            .focusEffectDisabled()
+            .onKeyPress(.return) {
+                action()
+                return .handled
+            }
+            .overlay {
+                if isFocused {
+                    RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
+                        .strokeBorder(accent.opacity(0.88), lineWidth: 2)
+                        .padding(1)
+                        .allowsHitTesting(false)
+                }
+            }
+            .onHover { hovered = $0 }
+            .scaleEffect(hovered && !reduceMotion ? 1.012 : 1)
+            .offset(y: hovered && !reduceMotion ? -1 : 0)
+            .shadow(color: .black.opacity(hovered ? 0.22 : 0), radius: 10, y: 4)
+            .help(helpText)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: hovered)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: isCurrent)
+    }
+}
+
+private struct StationCardAccessibility: ViewModifier {
+    let label: String
+    let value: String
+    let hint: String
+    let action: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .accessibilityLabel(label)
+            .accessibilityValue(value)
+            .accessibilityHint(hint)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { action() }
     }
 }

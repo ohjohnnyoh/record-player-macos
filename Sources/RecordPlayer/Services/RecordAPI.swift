@@ -67,7 +67,12 @@ enum RecordAPI {
         guard (200..<300).contains(http.statusCode) else {
             throw NSError(
                 domain: "RecordAPI", code: http.statusCode,
-                userInfo: [NSLocalizedDescriptionKey: "Сервер ответил \(http.statusCode)"]
+                userInfo: [
+                    NSLocalizedDescriptionKey: L10n.format(
+                        "Сервер ответил %@",
+                        String(http.statusCode)
+                    )
+                ]
             )
         }
     }

@@ -33,7 +33,7 @@ struct VolumeSlider: View {
                     .frame(width: compact ? 11 : 16)
             }
             .buttonStyle(.plain)
-            .help(player.isMuted ? "Включить звук (⌘M)" : "Выключить звук (⌘M)")
+            .help(L10n.string(player.isMuted ? "Включить звук (⌘M)" : "Выключить звук (⌘M)"))
 
             Slider(value: binding, in: 0...1)
                 .frame(width: sliderWidth)

@@ -45,6 +45,7 @@ struct StationPlaylistView: View {
                 Image(systemName: "arrow.clockwise")
             }
             .buttonStyle(.borderless)
+            .accessibilityLabel("Обновить плейлист")
             .help("Обновить")
             .disabled(state.isLoadingPlaylist)
 
@@ -56,9 +57,11 @@ struct StationPlaylistView: View {
     }
 
     private var subtitle: String {
-        if state.isLoadingPlaylist && state.playlist.isEmpty { return "Загружаем плейлист…" }
-        if state.playlist.isEmpty { return "Плейлист эфира" }
-        return "\(state.playlist.count) треков за последние сутки"
+        if state.isLoadingPlaylist && state.playlist.isEmpty {
+            return L10n.string("Загружаем плейлист…")
+        }
+        if state.playlist.isEmpty { return L10n.string("Плейлист эфира") }
+        return L10n.recentTrackCount(state.playlist.count)
     }
 
     // MARK: - Содержимое
@@ -66,7 +69,11 @@ struct StationPlaylistView: View {
     @ViewBuilder
     private var content: some View {
         if let error = state.playlistError, state.playlist.isEmpty {
-            message(icon: "wifi.exclamationmark", title: "Не удалось загрузить", subtitle: error) {
+            message(
+                icon: "wifi.exclamationmark",
+                title: L10n.string("Не удалось загрузить"),
+                subtitle: error
+            ) {
                 Button("Повторить") { Task { await state.loadPlaylist(for: station) } }
                     .buttonStyle(.borderedProminent)
                     .tint(accent)
@@ -74,8 +81,11 @@ struct StationPlaylistView: View {
         } else if state.playlist.isEmpty && state.isLoadingPlaylist {
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if state.playlist.isEmpty {
-            message(icon: "music.note.list", title: "Плейлист пуст",
-                    subtitle: "Станция не отдала историю эфира.") { EmptyView() }
+            message(
+                icon: "music.note.list",
+                title: L10n.string("Плейлист пуст"),
+                subtitle: L10n.string("Станция не отдала историю эфира.")
+            ) { EmptyView() }
         } else {
             VStack(spacing: 0) {
                 searchField
@@ -102,6 +112,7 @@ struct StationPlaylistView: View {
                         .foregroundStyle(Theme.tertiaryText)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Очистить поиск")
             }
         }
         .padding(.horizontal, 16)
@@ -152,10 +163,10 @@ struct StationPlaylistView: View {
     }
 
     private static func dayLabel(for date: Date?) -> String {
-        guard let date else { return "Без времени" }
+        guard let date else { return L10n.string("Без времени") }
         let calendar = Calendar.current
-        if calendar.isDateInToday(date) { return "Сегодня" }
-        if calendar.isDateInYesterday(date) { return "Вчера" }
+        if calendar.isDateInToday(date) { return L10n.string("Сегодня") }
+        if calendar.isDateInYesterday(date) { return L10n.string("Вчера") }
         return date.formatted(.dateTime.day().month(.wide))
     }
 
@@ -183,6 +194,7 @@ struct StationPlaylistView: View {
 
 private struct PlaylistRow: View {
     @Environment(\.appAccent) private var accent
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     let track: PlaylistTrack
 
     @State private var hovered = false
@@ -207,7 +219,7 @@ private struct PlaylistRow: View {
 
             Spacer(minLength: 6)
 
-            if hovered, let url = track.itunesUrl.flatMap(URL.init(string:)) {
+            if (hovered || voiceOverEnabled), let url = track.itunesUrl.flatMap(URL.init(string:)) {
                 Button {
                     NSWorkspace.shared.open(url)
                 } label: {
@@ -229,6 +241,9 @@ private struct PlaylistRow: View {
         }
         .contentShape(Rectangle())
         .onHover { hovered = $0 }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(track.displayTitle)
+        .accessibilityValue(track.timeText)
         .contextMenu {
             Button("Скопировать название") {
                 NSPasteboard.general.clearContents()

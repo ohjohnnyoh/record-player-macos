@@ -29,7 +29,9 @@ struct StationStatsView: View {
                     Image(systemName: "chart.bar")
                         .font(.system(size: 34, weight: .light))
                         .foregroundStyle(Theme.tertiaryText)
-                    Text(state.statsByTime.isEmpty ? "Пока нечего показать" : "Ничего не найдено")
+                    Text(L10n.string(
+                        state.statsByTime.isEmpty ? "Пока нечего показать" : "Ничего не найдено"
+                    ))
                         .font(.headline)
                     Text("Включите станцию — здесь появится, сколько вы её слушали.")
                         .font(.subheadline)
@@ -49,7 +51,10 @@ struct StationStatsView: View {
                 }
                 .safeAreaInset(edge: .top) {
                     HStack {
-                        Text("\(rows.count) станций · всего \(StationStat.duration(totalListened))")
+                        Text(L10n.listeningSummary(
+                            stations: rows.count,
+                            duration: StationStat.duration(totalListened)
+                        ))
                             .font(.system(size: 11))
                             .foregroundStyle(Theme.tertiaryText)
                         Spacer()
@@ -59,7 +64,7 @@ struct StationStatsView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .background(.ultraThinMaterial)
+                    .background(.bar)
                 }
             }
         }
@@ -141,10 +146,22 @@ private struct StatRow: View {
             }
         }
         .contentShape(Rectangle())
+        .focusable()
+        .onKeyPress(.return) {
+            if let station { state.play(station) }
+            return .handled
+        }
         .onHover { hovered = $0 }
         .onTapGesture {
             if let station { state.play(station) }
         }
-        .help("Включить \(stat.title)")
+        .accessibilityLabel(stat.title)
+        .accessibilityValue("\(stat.durationText), \(stat.playsText)")
+        .accessibilityHint("Включить станцию")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction {
+            if let station { state.play(station) }
+        }
+        .help(L10n.format("Включить %@", stat.title))
     }
 }

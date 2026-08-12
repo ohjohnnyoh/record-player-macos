@@ -17,23 +17,16 @@ struct StationStat: Codable, Identifiable, Hashable {
         let hours = total / 3600
         let minutes = (total % 3600) / 60
         switch (hours, minutes) {
-        case (0, 0): return "меньше минуты"
-        case (0, _): return "\(minutes) мин"
-        case (_, 0): return "\(hours) ч"
-        default: return "\(hours) ч \(minutes) мин"
+        case (0, 0): return L10n.string("меньше минуты")
+        case (0, _): return L10n.format("%@ мин", String(minutes))
+        case (_, 0): return L10n.format("%@ ч", String(hours))
+        default: return L10n.format("%@ ч %@ мин", String(hours), String(minutes))
         }
     }
 
     /// «8 включений» — с правильным окончанием.
     var playsText: String {
-        let n = plays % 100
-        let tail = n % 10
-        let word: String
-        if (11...14).contains(n) { word = "включений" }
-        else if tail == 1 { word = "включение" }
-        else if (2...4).contains(tail) { word = "включения" }
-        else { word = "включений" }
-        return "\(plays) \(word)"
+        L10n.playCount(plays)
     }
 }
 

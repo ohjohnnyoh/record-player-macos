@@ -69,16 +69,16 @@ enum StreamQuality: String, CaseIterable, Codable, Identifiable {
 
     var title: String {
         switch self {
-        case .auto: "Авто (HLS)"
-        case .high: "Высокое"
-        case .medium: "Среднее"
-        case .low: "Экономное"
+        case .auto: L10n.string("Авто (HLS)")
+        case .high: L10n.string("Высокое")
+        case .medium: L10n.string("Среднее")
+        case .low: L10n.string("Экономное")
         }
     }
 
     var subtitle: String {
         switch self {
-        case .auto: "адаптивный поток, до 112 kbps"
+        case .auto: L10n.string("адаптивный поток, до 112 kbps")
         case .high: "96 kbps AAC+"
         case .medium: "64 kbps AAC+"
         case .low: "32 kbps AAC+"
