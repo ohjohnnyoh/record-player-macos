@@ -21,10 +21,21 @@ enum PlaybackState: Equatable {
 final class AudioPlayer: ObservableObject {
     @Published private(set) var state: PlaybackState = .idle
     @Published var volume: Double = 0.8 {
-        didSet { player.volume = Float(isMuted ? 0 : volume) }
+        didSet { applyVolume() }
     }
     @Published var isMuted: Bool = false {
-        didSet { player.volume = Float(isMuted ? 0 : volume) }
+        didSet { applyVolume() }
+    }
+
+    /// Множитель поверх пользовательской громкости — им и делаются плавные переходы.
+    /// Отдельно от `volume`, чтобы затухание не сбивало положение ползунка.
+    private var fadeGain: Double = 0
+    private var fadeTask: Task<Void, Never>?
+
+    private enum Fade {
+        static let out = Duration.milliseconds(180)
+        static let `in` = Duration.milliseconds(280)
+        static let step = Duration.milliseconds(10)
     }
 
     private let player = AVPlayer()
@@ -44,7 +55,7 @@ final class AudioPlayer: ObservableObject {
     init() {
         player.automaticallyWaitsToMinimizeStalling = true
         player.actionAtItemEnd = .none
-        player.volume = Float(volume)
+        applyVolume()
 
         playerObservation = player.observe(\.timeControlStatus, options: [.new]) { [weak self] player, _ in
             let status = player.timeControlStatus
@@ -81,23 +92,85 @@ final class AudioPlayer: ObservableObject {
     func play(url: URL) {
         currentURL = url
         reconnectAttempt = 0
-        startItem(url: url)
+        fadeTask?.cancel()
+
+        // Если что-то уже звучит, сначала гасим. Резкая подмена источника рвёт
+        // волну на полуслове — отсюда щелчок и треск при переключении станций.
+        guard player.timeControlStatus == .playing else {
+            startItem(url: url)
+            return
+        }
+        state = .connecting          // интерфейс откликается сразу, не дожидаясь затухания
+        fadeTask = Task { [weak self] in
+            await self?.ramp(to: 0, over: Fade.out)
+            guard let self, !Task.isCancelled, self.currentURL == url else { return }
+            self.startItem(url: url)
+        }
     }
 
     func pause() {
         stallWatchdog?.cancel()
-        player.pause()
-        // Освобождаем сокет — живой поток незачем держать на паузе.
-        player.replaceCurrentItem(with: nil)
-        state = .paused
+        state = .paused              // тоже сразу, звук догаснет следом
+        fadeTask?.cancel()
+        fadeTask = Task { [weak self] in
+            await self?.ramp(to: 0, over: Fade.out)
+            guard let self, !Task.isCancelled, self.state == .paused else { return }
+            self.player.pause()
+            // Освобождаем сокет — живой поток незачем держать на паузе.
+            self.player.replaceCurrentItem(with: nil)
+        }
     }
 
     func stop() {
         stallWatchdog?.cancel()
-        player.pause()
-        player.replaceCurrentItem(with: nil)
-        currentURL = nil
+        fadeTask?.cancel()
         state = .idle
+        currentURL = nil
+        fadeTask = Task { [weak self] in
+            await self?.ramp(to: 0, over: Fade.out)
+            guard let self, !Task.isCancelled, self.state == .idle else { return }
+            self.player.pause()
+            self.player.replaceCurrentItem(with: nil)
+        }
+    }
+
+    // MARK: - Плавные переходы
+
+    private func applyVolume() {
+        player.volume = Float(isMuted ? 0 : volume * fadeGain)
+    }
+
+    /// Ведёт множитель к цели за указанное время небольшими шагами.
+    /// AVPlayer не умеет рампу для живого потока сам, поэтому шагаем вручную.
+    private func ramp(to target: Double, over duration: Duration) async {
+        let steps = max(1, Int(duration / Fade.step))
+        let start = fadeGain
+        guard abs(target - start) > 0.001 else {
+            fadeGain = target
+            applyVolume()
+            return
+        }
+        for step in 1...steps {
+            if Task.isCancelled { return }
+            let t = Double(step) / Double(steps)
+            // Сглаживание по краям: без него слышны уступы в начале и конце.
+            let eased = t * t * (3 - 2 * t)
+            fadeGain = start + (target - start) * eased
+            applyVolume()
+            try? await Task.sleep(for: Fade.step)
+        }
+        guard !Task.isCancelled else { return }
+        fadeGain = target
+        applyVolume()
+    }
+
+    /// Вызывается, когда звук реально пошёл — до этого момента плавно поднимать нечего.
+    private func fadeIn() {
+        guard fadeGain < 0.999 else { return }
+        fadeTask?.cancel()
+        fadeTask = Task { [weak self] in
+            await self?.ramp(to: 1, over: Fade.in)
+        }
     }
 
     // MARK: - Внутреннее
@@ -116,7 +189,10 @@ final class AudioPlayer: ObservableObject {
 
         observeItem(item)
         player.replaceCurrentItem(with: item)
-        player.volume = Float(isMuted ? 0 : volume)
+        // Новый поток всегда начинается с тишины и поднимается сам, когда пойдёт звук.
+        // Без этого первые кадры буфера врубались на полной громкости.
+        fadeGain = 0
+        applyVolume()
         player.play()
 
         state = .connecting
@@ -179,6 +255,7 @@ final class AudioPlayer: ObservableObject {
             reconnectAttempt = 0
             stallWatchdog?.cancel()
             state = .playing
+            fadeIn()
         case .waitingToPlayAtSpecifiedRate:
             if state != .paused { state = .connecting }
             armStallWatchdog()
