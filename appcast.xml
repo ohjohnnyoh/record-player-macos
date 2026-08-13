@@ -1,0 +1,40 @@
+<?xml version="1.0" standalone="yes"?>
+<!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+-->
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Record</title>
+        <item>
+            <title>1.7</title>
+            <pubDate>Fri, 14 Aug 2026 01:29:14 +0300</pubDate>
+            <sparkle:version>8</sparkle:version>
+            <sparkle:shortVersionString>1.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description sparkle:format="markdown"><![CDATA[# Record 1.7
+
+## Что нового
+
+- Автоматическая проверка обновлений раз в сутки.
+- Установка новой версии прямо внутри Record.
+- Действия «Обновить», «Напомнить завтра» и «Пропустить эту версию».
+- Стеклянная панель с прогрессом загрузки и установки.
+- Ручная проверка и параметры обновлений в настройках.
+
+## What is new
+
+- Automatic update checks once a day.
+- New versions can be installed directly from Record.
+- Update, Remind Me Tomorrow, and Skip This Version actions.
+- A glass panel with download and installation progress.
+- Manual checks and update preferences in Settings.
+]]></description>
+            <enclosure url="https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.7/Record-1.7.zip" length="2927006" type="application/octet-stream" sparkle:edSignature="D0SS8qB9pWkqM4izSf9/3XCmCbHvSBTIu0/1HKqLWK0+g/ugUCs9IE5T7NHI5JsAq75dXFHFJyWoI8aqak7KCQ=="/>
+        </item>
+    </channel>
+</rss>
+<!-- sparkle-signatures:
+edSignature: 4wJ6eno2fKVVgjDWPTnerK0AFXYnRX91T5Ug3V24jlqr1u+FP94SBLfCzoM3bZG/TiPLHaUDd6b6U5z7UNX9DQ==
+length: 2002
+-->
