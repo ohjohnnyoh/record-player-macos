@@ -4,7 +4,7 @@
 
 An unofficial native Radio Record player for macOS.
 
-[Скачать Record 1.4](https://github.com/ohjohnnyoh/record-player-macos/releases/latest) · [English](#english) · [Все скриншоты](docs/screenshots)
+[Скачать Record 1.6](https://github.com/ohjohnnyoh/record-player-macos/releases/latest) · [English](#english) · [Все скриншоты](docs/screenshots)
 
 ![Главное окно Record](docs/screenshots/01-all-stations.png)
 
@@ -16,7 +16,7 @@ Record позволяет слушать все станции Radio Record бе
 
 ### Скачать и установить
 
-1. Скачайте [`Record-1.4.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/latest).
+1. Скачайте [`Record-1.6.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.6/Record-1.6.dmg).
 2. Откройте образ и перетащите Record в папку «Программы».
 3. При первом запуске нажмите на приложение правой кнопкой мыши и выберите **Открыть**.
 4. Подтвердите запуск в появившемся окне.
@@ -38,29 +38,34 @@ xattr -dr com.apple.quarantine /Applications/Record.app
 - **Стеклянный плеер:** плавающая панель остаётся поверх каталога, а карточки прокручиваются под ней.
 - **Мини-плеер:** отдельное квадратное окно с обложкой, громкостью и управлением воспроизведением.
 - **Строка меню:** текущий трек, избранные станции и основные кнопки доступны без открытия главного окна.
-- **Плейлист станции:** показывает, что звучало в эфире за последние сутки.
+- **Полный режим станции:** нажмите обложку в нижнем плеере, чтобы открыть крупную обложку текущего трека, управление станцией, поиск и историю эфира за последние сутки.
 - **История и статистика:** данные хранятся только на этом Mac.
 - **Apple Music:** трек можно открыть в Apple Music или скопировать его название.
 - **Системное управление:** работают медиаклавиши, панель «Сейчас исполняется» и пространственное аудио AirPods.
 - **Четыре режима качества:** Auto HLS, 96, 64 и 32 kbps AAC+.
 - **Таймер сна:** 15, 30, 60 или 90 минут.
+- **Проверка обновлений:** Record раз в сутки проверяет GitHub Releases и сообщает о новой версии. Ручная проверка доступна в меню приложения.
 - **Accessibility:** VoiceOver, управление с клавиатуры, Reduce Motion, Reduce Transparency и повышенный контраст.
 
 ### Интерфейс
+
+| Полный режим станции | Режим с боковой панелью |
+|---|---|
+| ![Полный режим станции](docs/screenshots/06-full-station.png) | ![Полный режим станции с боковой панелью](docs/screenshots/12-full-station-sidebar.png) |
 
 | Избранное | История треков |
 |---|---|
 | ![Избранное](docs/screenshots/02-favorites.png) | ![История](docs/screenshots/03-history.png) |
 
-| Статистика | Плейлист станции |
+| Статистика | Поиск |
 |---|---|
-| ![Статистика](docs/screenshots/04-listening-stats.png) | ![Плейлист станции](docs/screenshots/06-station-playlist.png) |
+| ![Статистика](docs/screenshots/04-listening-stats.png) | ![Поиск](docs/screenshots/05-search.png) |
 
 | Мини-плеер | Плеер в строке меню |
 |---|---|
 | ![Мини-плеер](docs/screenshots/08-mini-player.png) | ![Плеер в строке меню](docs/screenshots/09-menubar-player.png) |
 
-[Посмотреть все 11 скриншотов](docs/screenshots)
+[Посмотреть все 12 скриншотов](docs/screenshots)
 
 ### Горячие клавиши
 
@@ -101,7 +106,7 @@ The interface is available in Russian and English. The app follows the language 
 
 ### Download and install
 
-1. Download [`Record-1.4.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/latest).
+1. Download [`Record-1.6.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.6/Record-1.6.dmg).
 2. Open the disk image and drag Record to Applications.
 3. On first launch, right-click the app and choose **Open**.
 4. Confirm the launch in the macOS dialog.
@@ -123,15 +128,20 @@ Record requires macOS 14 or later. It uses native Liquid Glass on macOS 26 and A
 - **Glass player bar:** the floating player stays above the catalog while station cards scroll underneath it.
 - **Mini player:** a separate square window with artwork, volume, and playback controls.
 - **Menu bar player:** see the current track, favorite stations, and essential controls without opening the main window.
-- **Station playlist:** review tracks played during the last 24 hours.
+- **Full station view:** click the artwork in the bottom player to open large current-track artwork, station controls, search, and the last 24 hours of broadcast history.
 - **History and statistics:** listening data stays on your Mac.
 - **Apple Music:** open a track in Apple Music or copy its title.
 - **System controls:** media keys, Now Playing, and AirPods spatial audio are supported.
 - **Four quality modes:** Auto HLS, 96, 64, and 32 kbps AAC+.
 - **Sleep timer:** 15, 30, 60, or 90 minutes.
+- **Update checks:** Record checks GitHub Releases once a day and reports new versions. A manual check is available from the app menu.
 - **Accessibility:** VoiceOver, keyboard navigation, Reduce Motion, Reduce Transparency, and increased contrast.
 
 ### Interface
+
+| Full station view | Full view with sidebar |
+|---|---|
+| ![Full station view](docs/screenshots/06-full-station.png) | ![Full station view with sidebar](docs/screenshots/12-full-station-sidebar.png) |
 
 | Main window in English | Player options |
 |---|---|
@@ -141,7 +151,7 @@ Record requires macOS 14 or later. It uses native Liquid Glass on macOS 26 and A
 |---|---|
 | ![Search](docs/screenshots/05-search.png) | ![Accent colors](docs/screenshots/10-accent-palettes.png) |
 
-[View all 11 screenshots](docs/screenshots)
+[View all 12 screenshots](docs/screenshots)
 
 ### Keyboard shortcuts
 
@@ -182,6 +192,7 @@ Build the installer DMG:
 - `AVPlayer` playback with automatic reconnection after network errors and Mac sleep.
 - Mono and stereo spatialization is explicitly enabled for AirPods.
 - Russian and English String Catalogs with system plural rules.
+- Lightweight GitHub Releases update checks with a 24-hour interval and `ETag` caching. Updates always open in the browser and are never installed silently.
 - ImageIO downsamples station icons and artwork during decoding.
 - Favorites, history, statistics, and settings are stored locally.
 
@@ -191,7 +202,7 @@ Build the installer DMG:
 |---|---|
 | `GET /api/stations/` | Station catalog, artwork, streams, and genres |
 | `GET /api/stations/now/` | Current track for all stations |
-| `GET /api/station/history/?id=` | Recent playlist for one station |
+| `GET /api/station/history/?id=` | Recent broadcast history for one station |
 
 ## Disclaimer
 

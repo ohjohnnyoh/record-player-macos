@@ -433,6 +433,16 @@
         }
       }
     },
+    "Вернуться к списку станций": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to the station list"
+          }
+        }
+      }
+    },
     "Выберите станцию": {
       "localizations": {
         "en": {
@@ -653,6 +663,26 @@
         }
       }
     },
+    "История эфира": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Station History"
+          }
+        }
+      }
+    },
+    "История эфира пуста": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Station history is empty"
+          }
+        }
+      }
+    },
     "История": {
       "localizations": {
         "en": {
@@ -669,6 +699,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "History is empty"
+          }
+        }
+      }
+    },
+    "К станциям": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to Stations"
           }
         }
       }
@@ -793,12 +833,32 @@
         }
       }
     },
+    "Загружаем историю эфира…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading station history…"
+          }
+        }
+      }
+    },
     "Обновить": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Refresh"
+          }
+        }
+      }
+    },
+    "Обновить историю эфира": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh station history"
           }
         }
       }
@@ -849,6 +909,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Open Main Window"
+          }
+        }
+      }
+    },
+    "Открыть станцию": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Station"
           }
         }
       }
@@ -1023,6 +1093,16 @@
         }
       }
     },
+    "Поиск по истории эфира": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search station history"
+          }
+        }
+      }
+    },
     "Поиск станции или жанра": {
       "localizations": {
         "en": {
@@ -1049,6 +1129,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nothing to show yet"
+          }
+        }
+      }
+    },
+    "Попробуйте изменить поисковый запрос.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try a different search."
           }
         }
       }
@@ -1163,6 +1253,16 @@
         }
       }
     },
+    "Станция пока не отдала список недавних треков.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The station has not provided its recent tracks yet."
+          }
+        }
+      }
+    },
     "Сервер ответил %@": {
       "localizations": {
         "en": {
@@ -1249,6 +1349,106 @@
           "stringUnit": {
             "state": "translated",
             "value": "The connection closed"
+          }
+        }
+      }
+    },
+    "Доступна версия %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@ is available"
+          }
+        }
+      }
+    },
+    "Не удалось проверить обновления": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to Check for Updates"
+          }
+        }
+      }
+    },
+    "Откройте страницу релиза, чтобы прочитать описание и скачать обновление.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the release page to read the notes and download the update."
+          }
+        }
+      }
+    },
+    "Открыть страницу релиза": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Release Page"
+          }
+        }
+      }
+    },
+    "Позже": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
+          }
+        }
+      }
+    },
+    "Проверьте подключение к интернету и попробуйте ещё раз.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your internet connection and try again."
+          }
+        }
+      }
+    },
+    "Проверить обновления…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for Updates…"
+          }
+        }
+      }
+    },
+    "О программе Record": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About Record"
+          }
+        }
+      }
+    },
+    "Плеер для прослушивания радиостанций Radio Record, созданный независимым разработчиком %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A player for listening to Radio Record stations, created by independent developer %@"
+          }
+        }
+      }
+    },
+    "Поиск": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
           }
         }
       }
@@ -1349,6 +1549,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Controls playback of the current station"
+          }
+        }
+      }
+    },
+    "У вас установлена версия %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@ is installed."
+          }
+        }
+      }
+    },
+    "Установлена актуальная версия": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're Up to Date"
           }
         }
       }

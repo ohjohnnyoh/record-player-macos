@@ -109,7 +109,7 @@ final class AppState: ObservableObject {
 
     // MARK: - Плейлист станции
 
-    /// Станция, чей плейлист открыт. nil — панель закрыта.
+    /// Станция, открытая в полноразмерном режиме. nil — показан каталог.
     @Published var playlistStation: Station?
     @Published private(set) var playlist: [PlaylistTrack] = []
     @Published private(set) var isLoadingPlaylist = false
@@ -348,6 +348,7 @@ final class AppState: ObservableObject {
 
     func startPlayback(_ station: Station) {
         guard let url = station.streamURL(for: quality) else { return }
+        let shouldFollowPlayback = playlistStation != nil && playlistStation?.id != station.id
         flushListening()
         countPlay(of: station)
         currentStation = station
@@ -355,6 +356,13 @@ final class AppState: ObservableObject {
         Defaults.lastStationID = station.id
         player.play(url: url)
         RemoteControl.shared.update(station: station, track: nowPlaying[station.id], isPlaying: true)
+
+        // Полноразмерный режим всегда следует за фактически играющей станцией.
+        // Иначе случайный выбор, горячие клавиши и медиакоманды меняли звук,
+        // но оставляли на экране обложку и историю предыдущей станции.
+        if shouldFollowPlayback {
+            showStation(station)
+        }
     }
 
     func togglePlayPause() {
@@ -432,11 +440,22 @@ final class AppState: ObservableObject {
 
     // MARK: - Плейлист станции
 
-    func showPlaylist(for station: Station) {
+    func showStation(_ station: Station) {
         playlistStation = station
         playlist = []
         playlistError = nil
         Task { await loadPlaylist(for: station) }
+    }
+
+    func showPlaylist(for station: Station) {
+        showStation(station)
+    }
+
+    func closeStation() {
+        playlistStation = nil
+        playlist = []
+        playlistError = nil
+        isLoadingPlaylist = false
     }
 
     func loadPlaylist(for station: Station) async {

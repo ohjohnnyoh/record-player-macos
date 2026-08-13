@@ -9,7 +9,6 @@ struct PlayerBar: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
     @EnvironmentObject private var state: AppState
-    @Environment(\.openWindow) private var openWindow
     @State private var artworkHovered = false
     @State private var barHovered = false
     @State private var extrasHovered = false
@@ -71,8 +70,8 @@ struct PlayerBar: View {
 
     private var artwork: some View {
         Button {
-            NSApp.activate(ignoringOtherApps: true)
-            openWindow(id: "mini")
+            guard let station else { return }
+            state.showStation(station)
         } label: {
             ZStack {
                 RoundedRectangle(cornerRadius: 7, style: .continuous)
@@ -99,7 +98,7 @@ struct PlayerBar: View {
                 if artworkHovered {
                     ZStack {
                         Color.black.opacity(0.45)
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        Image(systemName: "rectangle.inset.filled")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(.white)
                     }
@@ -110,10 +109,11 @@ struct PlayerBar: View {
             .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
         }
         .buttonStyle(.plain)
+        .disabled(station == nil)
         .onHover { artworkHovered = $0 }
-        .accessibilityLabel("Открыть мини-плеер")
+        .accessibilityLabel("Открыть станцию")
         .accessibilityValue(track?.displayTitle ?? station?.title ?? L10n.string("Ничего не играет"))
-        .help("Открыть мини-плеер (⌥⌘M)")
+        .help("Открыть станцию")
         .animation(reduceMotion ? nil : .easeOut(duration: 0.14), value: artworkHovered)
     }
 
@@ -212,11 +212,6 @@ struct PlayerBar: View {
 
             if let station = state.currentStation {
                 Button("Что играло раньше…") { state.showPlaylist(for: station) }
-            }
-
-            Button("Мини-плеер") {
-                NSApp.activate(ignoringOtherApps: true)
-                openWindow(id: "mini")
             }
 
             if let station = state.currentStation {

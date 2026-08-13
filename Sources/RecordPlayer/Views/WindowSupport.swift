@@ -85,3 +85,80 @@ struct WindowConfigurator: NSViewRepresentable {
         }
     }
 }
+
+extension Notification.Name {
+    static let focusStationSearch = Notification.Name("Record.focusStationSearch")
+}
+
+/// Нативное поле поиска фиксированного размера для правой группы toolbar.
+///
+/// SwiftUI `searchable` на macOS создаёт адаптивный `NSSearchToolbarItem`. При
+/// анимации `NavigationSplitView` он временно превращался в кнопку и сразу
+/// раскрывался обратно. Обычный `NSSearchField` сохраняет заданные 170 pt во всех
+/// состояниях sidebar, но оставляет системные значки поиска и очистки, фокус и
+/// стандартное поведение AppKit.
+struct FixedToolbarSearchField: NSViewRepresentable {
+    @Binding var text: String
+    let prompt: String
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(text: $text)
+    }
+
+    func makeNSView(context: Context) -> NSSearchField {
+        let field = NSSearchField()
+        field.delegate = context.coordinator
+        field.placeholderString = prompt
+        field.stringValue = text
+        field.sendsSearchStringImmediately = true
+        field.sendsWholeSearchString = false
+        field.controlSize = .small
+        field.setContentHuggingPriority(.required, for: .horizontal)
+        field.setContentCompressionResistancePriority(.required, for: .horizontal)
+        field.setAccessibilityLabel(L10n.string("Поиск"))
+        context.coordinator.attach(to: field)
+        return field
+    }
+
+    func updateNSView(_ field: NSSearchField, context: Context) {
+        context.coordinator.text = $text
+        if field.stringValue != text { field.stringValue = text }
+        if field.placeholderString != prompt { field.placeholderString = prompt }
+    }
+
+    final class Coordinator: NSObject, NSSearchFieldDelegate {
+        var text: Binding<String>
+        private weak var field: NSSearchField?
+        private var focusObserver: NSObjectProtocol?
+
+        init(text: Binding<String>) {
+            self.text = text
+            super.init()
+        }
+
+        func attach(to field: NSSearchField) {
+            self.field = field
+            focusObserver = NotificationCenter.default.addObserver(
+                forName: .focusStationSearch,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let field = self?.field else { return }
+                field.window?.makeFirstResponder(field)
+            }
+        }
+
+        func controlTextDidChange(_ notification: Notification) {
+            guard let field = notification.object as? NSSearchField else { return }
+            if text.wrappedValue != field.stringValue {
+                text.wrappedValue = field.stringValue
+            }
+        }
+
+        deinit {
+            if let focusObserver {
+                NotificationCenter.default.removeObserver(focusObserver)
+            }
+        }
+    }
+}

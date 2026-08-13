@@ -10,27 +10,31 @@ struct RootView: View {
     var body: some View {
         NavigationSplitView {
             SidebarView()
+                .toolbar(removing: .sidebarToggle)
                 .navigationSplitViewColumnWidth(min: 190, ideal: 210, max: 260)
         } detail: {
             Group {
-                switch state.section {
-                case .all, .favorites:
-                    StationGridView()
-                case .history:
-                    HistoryView()
+                if let station = state.playlistStation {
+                    StationDetailView(station: station)
+                } else {
+                    switch state.section {
+                    case .all, .favorites:
+                        StationGridView()
+                    case .history:
+                        HistoryView()
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             // Плеер не в раскладке, а поверх неё — карточки проезжают под пилюлей.
-            .overlay(alignment: .bottom) { PlayerBar() }
+            .overlay(alignment: .bottom) {
+                if state.playlistStation == nil {
+                    PlayerBar()
+                }
+            }
         }
         .navigationTitle("")
         .toolbar { toolbarContent }
-        .searchable(
-            text: $state.searchText,
-            placement: .toolbar,
-            prompt: "Поиск станции или жанра"
-        )
         // Один слой прозрачности на всё окно, а не на правую колонку.
         //
         // Раньше он висел на колонке с сеткой, да ещё и с `.ignoresSafeArea()` —
@@ -63,11 +67,6 @@ struct RootView: View {
                 contentView.layer?.backgroundColor = NSColor.clear.cgColor
             }
         })
-        .sheet(item: $state.playlistStation) { station in
-            StationPlaylistView(station: station)
-                .environmentObject(state)
-                .environment(\.appAccent, accent)
-        }
         .tint(accent)
     }
 
@@ -82,14 +81,24 @@ struct RootView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItemGroup(placement: .navigation) {
-            Button {
-                state.playRandom()
-            } label: {
-                Label("Случайная станция", systemImage: "shuffle")
-            }
-            .help("Случайная станция (⇧⌘R)")
+        if #available(macOS 26.0, *) {
+            ToolbarSpacer(.flexible)
+        }
 
+        ToolbarItemGroup(placement: .primaryAction) {
+            Button {
+                NSApp.sendAction(
+                    #selector(NSSplitViewController.toggleSidebar(_:)),
+                    to: nil,
+                    from: nil
+                )
+            } label: {
+                Label("Показать или скрыть боковую панель", systemImage: "sidebar.leading")
+            }
+            .help("Показать или скрыть боковую панель")
+        }
+
+        ToolbarItemGroup(placement: .primaryAction) {
             Button {
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "mini")
@@ -97,16 +106,30 @@ struct RootView: View {
                 Label("Мини-плеер", systemImage: "pip")
             }
             .help("Мини-плеер (⌥⌘M)")
+
+            Button {
+                state.playRandom()
+            } label: {
+                Label("Случайная станция", systemImage: "shuffle")
+            }
+            .help("Случайная станция (⇧⌘R)")
         }
 
         ToolbarItemGroup(placement: .primaryAction) {
+            AccentMenuButton(selection: $state.accent)
+
             Picker("Сортировка", selection: $state.sortOrder) {
                 ForEach(SortOrder.allCases) { Text($0.title).tag($0) }
             }
             .pickerStyle(.menu)
             .frame(width: 165)
 
-            AccentMenuButton(selection: $state.accent)
+            FixedToolbarSearchField(
+                text: $state.searchText,
+                prompt: L10n.string("Поиск")
+            )
+            .frame(width: 170, height: 22)
+            .fixedSize(horizontal: true, vertical: false)
         }
     }
 }
@@ -116,6 +139,7 @@ struct RootView: View {
 struct SidebarView: View {
     @Environment(\.appAccent) private var accent
     @EnvironmentObject private var state: AppState
+    @EnvironmentObject private var updateChecker: UpdateChecker
     @FocusState private var focusedSection: SidebarSection?
 
     var body: some View {
@@ -123,6 +147,7 @@ struct SidebarView: View {
             Section {
                 ForEach(SidebarSection.allCases) { item in
                     Button {
+                        state.closeStation()
                         state.section = item
                     } label: {
                         sidebarRow(for: item)
@@ -139,6 +164,7 @@ struct SidebarView: View {
             if !state.genres.isEmpty {
                 Section("Жанры") {
                     Button {
+                        state.closeStation()
                         state.selectedGenre = nil
                         if state.section == .history { state.section = .all }
                     } label: {
@@ -148,6 +174,7 @@ struct SidebarView: View {
 
                     ForEach(state.genres, id: \.self) { genre in
                         Button {
+                            state.closeStation()
                             state.selectedGenre = (state.selectedGenre == genre) ? nil : genre
                             if state.section == .history { state.section = .all }
                         } label: {
@@ -159,10 +186,56 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
-        .safeAreaInset(edge: .bottom) {
-            if state.stations.isEmpty && state.isLoadingStations {
-                ProgressView().controlSize(.small).padding(.bottom, 10)
+        // Строки sidebar начинаются ниже системного toolbar и больше не подходят
+        // вплотную к кнопке его показа. Фон при этом по-прежнему заполняет titlebar,
+        // как у системных приложений macOS.
+        .contentMargins(.top, 10, for: .scrollContent)
+        .safeAreaInset(edge: .bottom, spacing: 0) { sidebarFooter }
+    }
+
+    @ViewBuilder
+    private var sidebarFooter: some View {
+        if let release = updateChecker.availableRelease {
+            Button {
+                NSWorkspace.shared.open(release.pageURL)
+            } label: {
+                HStack(spacing: 9) {
+                    Image(systemName: "arrow.down.circle.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(accent)
+
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(L10n.format("Доступна версия %@", release.version))
+                            .font(.system(size: 11.5, weight: .semibold))
+                        Text("Открыть страницу релиза")
+                            .font(.system(size: 9.5))
+                            .foregroundStyle(Theme.secondaryText)
+                    }
+
+                    Spacer(minLength: 4)
+
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundStyle(Theme.tertiaryText)
+                }
+                .padding(.horizontal, 10)
+                .frame(height: 43)
+                .background {
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(accent.opacity(0.09))
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .strokeBorder(accent.opacity(0.18), lineWidth: 0.7)
+                }
+                .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
             }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 8)
+            .padding(.bottom, 8)
+            .help("Открыть страницу релиза")
+        } else if state.stations.isEmpty && state.isLoadingStations {
+            ProgressView().controlSize(.small).padding(.bottom, 10)
         }
     }
 

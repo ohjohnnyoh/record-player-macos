@@ -6,13 +6,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Personal player. Audio streams belong to Radio Record."
+            "value" : "A player for listening to Radio Record stations, created by independent developer oh_johnny"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Личный плеер. Аудиопотоки принадлежат Radio Record."
+            "value" : "Плеер для прослушивания радиостанций Radio Record, созданный независимым разработчиком oh_johnny"
           }
         }
       }
