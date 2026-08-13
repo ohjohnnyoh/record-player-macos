@@ -5,6 +5,7 @@ struct RootView: View {
     @Environment(\.appAccent) private var accent
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @EnvironmentObject private var state: AppState
+    @EnvironmentObject private var updater: RecordUpdaterController
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -68,6 +69,14 @@ struct RootView: View {
             }
         })
         .tint(accent)
+        .sheet(isPresented: Binding(
+            get: { updater.isPanelPresented },
+            set: { if !$0 { updater.dismissPanelFromSystem() } }
+        )) {
+            UpdatePanelView()
+                .environmentObject(updater)
+                .environment(\.appAccent, accent)
+        }
     }
 
     @ViewBuilder
@@ -139,7 +148,6 @@ struct RootView: View {
 struct SidebarView: View {
     @Environment(\.appAccent) private var accent
     @EnvironmentObject private var state: AppState
-    @EnvironmentObject private var updateChecker: UpdateChecker
     @FocusState private var focusedSection: SidebarSection?
 
     var body: some View {
@@ -190,53 +198,6 @@ struct SidebarView: View {
         // вплотную к кнопке его показа. Фон при этом по-прежнему заполняет titlebar,
         // как у системных приложений macOS.
         .contentMargins(.top, 10, for: .scrollContent)
-        .safeAreaInset(edge: .bottom, spacing: 0) { sidebarFooter }
-    }
-
-    @ViewBuilder
-    private var sidebarFooter: some View {
-        if let release = updateChecker.availableRelease {
-            Button {
-                NSWorkspace.shared.open(release.pageURL)
-            } label: {
-                HStack(spacing: 9) {
-                    Image(systemName: "arrow.down.circle.fill")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(accent)
-
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(L10n.format("Доступна версия %@", release.version))
-                            .font(.system(size: 11.5, weight: .semibold))
-                        Text("Открыть страницу релиза")
-                            .font(.system(size: 9.5))
-                            .foregroundStyle(Theme.secondaryText)
-                    }
-
-                    Spacer(minLength: 4)
-
-                    Image(systemName: "arrow.up.right")
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(Theme.tertiaryText)
-                }
-                .padding(.horizontal, 10)
-                .frame(height: 43)
-                .background {
-                    RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .fill(accent.opacity(0.09))
-                }
-                .overlay {
-                    RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .strokeBorder(accent.opacity(0.18), lineWidth: 0.7)
-                }
-                .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-            }
-            .buttonStyle(.plain)
-            .padding(.horizontal, 8)
-            .padding(.bottom, 8)
-            .help("Открыть страницу релиза")
-        } else if state.stations.isEmpty && state.isLoadingStations {
-            ProgressView().controlSize(.small).padding(.bottom, 10)
-        }
     }
 
     private func sidebarRow(for item: SidebarSection) -> some View {

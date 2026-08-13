@@ -14,13 +14,17 @@ INSTALL=1
 
 echo "==> Компиляция (release)"
 swift build -c release
-BIN="$(swift build -c release --show-bin-path)/RecordPlayer"
+BIN_DIR="$(swift build -c release --show-bin-path)"
+BIN="$BIN_DIR/RecordPlayer"
+SPARKLE="$BIN_DIR/Sparkle.framework"
 [[ -f "$BIN" ]] || { echo "Не найден бинарник: $BIN"; exit 1; }
+[[ -d "$SPARKLE" ]] || { echo "Не найден Sparkle.framework: $SPARKLE"; exit 1; }
 
 echo "==> Сборка бандла"
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
 cp "$BIN" "$APP/Contents/MacOS/RecordPlayer"
+ditto "$SPARKLE" "$APP/Contents/Frameworks/Sparkle.framework"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
@@ -41,6 +45,10 @@ done
 iconutil -c icns "$ICON_TMP/AppIcon.iconset" -o "$APP/Contents/Resources/AppIcon.icns"
 
 echo "==> Подпись (ad-hoc, для локального запуска)"
+# Hardened Runtime включает Library Validation. Без Developer ID macOS 26
+# считает ad-hoc приложение и готовый Sparkle.framework разными командами и
+# отклоняет фреймворк ещё до main(). Для личной сборки сохраняем ad-hoc подпись,
+# но не добавляем runtime; целостность обновлений проверяет EdDSA Sparkle.
 codesign --force --deep --sign - "$APP" 2>/dev/null || echo "   подпись пропущена"
 
 if [[ $INSTALL -eq 1 ]]; then

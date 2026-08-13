@@ -1,6 +1,90 @@
 {
   "sourceLanguage": "ru",
   "strings": {
+    "Record %@ будет установлен после перезапуска приложения.": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Record %@ will be installed after the app restarts." } } }
+    },
+    "Record %@ готов": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Record %@ Is Ready" } } }
+    },
+    "Record обновлён": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Record Is Up to Date" } } }
+    },
+    "Автоматически проверять наличие обновлений": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Automatically check for updates" } } }
+    },
+    "В этой версии улучшены стабильность и качество приложения.": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "This version improves app stability and quality." } } }
+    },
+    "Версия %@": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Version %@" } } }
+    },
+    "Готово": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Done" } } }
+    },
+    "Доступен Record %@": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Record %@ Is Available" } } }
+    },
+    "Загружать обновления автоматически": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Download updates automatically" } } }
+    },
+    "Загрузка Record %@": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Downloading Record %@" } } }
+    },
+    "Ищем новую версию…": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Checking for a new version…" } } }
+    },
+    "Напомнить завтра": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Remind Me Tomorrow" } } }
+    },
+    "Новая версия %@": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "New version %@" } } }
+    },
+    "Обновление Record": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Record Update" } } }
+    },
+    "Обновление готово к установке": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "The update is ready to install" } } }
+    },
+    "Обновления": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Updates" } } }
+    },
+    "Отменить": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Cancel" } } }
+    },
+    "Подготовка Record %@": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Preparing Record %@" } } }
+    },
+    "Подробнее": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Learn More" } } }
+    },
+    "Последняя проверка: %@": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Last checked: %@" } } }
+    },
+    "Проверить сейчас": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Check Now" } } }
+    },
+    "Проверка ещё не выполнялась": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Not checked yet" } } }
+    },
+    "Пропустить эту версию": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Skip This Version" } } }
+    },
+    "У вас установлена последняя версия Record": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "You have the latest version of Record" } } }
+    },
+    "Устанавливаем обновление…": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Installing update…" } } }
+    },
+    "Установить и перезапустить": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Install and Relaunch" } } }
+    },
+    "Установлена версия %@": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "Installed version %@" } } }
+    },
+    "Что нового": {
+      "localizations": { "en": { "stringUnit": { "state": "translated", "value": "What’s New" } } }
+    },
     "%@ · всего %@": {
       "localizations": {
         "en": {

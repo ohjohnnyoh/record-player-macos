@@ -4,7 +4,7 @@
 
 An unofficial native Radio Record player for macOS.
 
-[Скачать Record 1.6](https://github.com/ohjohnnyoh/record-player-macos/releases/latest) · [English](#english) · [Все скриншоты](docs/screenshots)
+[Скачать Record 1.7](https://github.com/ohjohnnyoh/record-player-macos/releases/latest) · [English](#english) · [Все скриншоты](docs/screenshots)
 
 ![Главное окно Record](docs/screenshots/01-all-stations.png)
 
@@ -16,7 +16,7 @@ Record позволяет слушать все станции Radio Record бе
 
 ### Скачать и установить
 
-1. Скачайте [`Record-1.6.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.6/Record-1.6.dmg).
+1. Скачайте [`Record-1.7.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.7/Record-1.7.dmg).
 2. Откройте образ и перетащите Record в папку «Программы».
 3. При первом запуске нажмите на приложение правой кнопкой мыши и выберите **Открыть**.
 4. Подтвердите запуск в появившемся окне.
@@ -44,7 +44,7 @@ xattr -dr com.apple.quarantine /Applications/Record.app
 - **Системное управление:** работают медиаклавиши, панель «Сейчас исполняется» и пространственное аудио AirPods.
 - **Четыре режима качества:** Auto HLS, 96, 64 и 32 kbps AAC+.
 - **Таймер сна:** 15, 30, 60 или 90 минут.
-- **Проверка обновлений:** Record раз в сутки проверяет GitHub Releases и сообщает о новой версии. Ручная проверка доступна в меню приложения.
+- **Автообновление:** Record раз в сутки проверяет подписанный канал обновлений. Новую версию можно установить из приложения, отложить до завтра или пропустить. Ручная проверка доступна в меню приложения.
 - **Accessibility:** VoiceOver, управление с клавиатуры, Reduce Motion, Reduce Transparency и повышенный контраст.
 
 ### Интерфейс
@@ -106,7 +106,7 @@ The interface is available in Russian and English. The app follows the language 
 
 ### Download and install
 
-1. Download [`Record-1.6.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.6/Record-1.6.dmg).
+1. Download [`Record-1.7.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.7/Record-1.7.dmg).
 2. Open the disk image and drag Record to Applications.
 3. On first launch, right-click the app and choose **Open**.
 4. Confirm the launch in the macOS dialog.
@@ -134,7 +134,7 @@ Record requires macOS 14 or later. It uses native Liquid Glass on macOS 26 and A
 - **System controls:** media keys, Now Playing, and AirPods spatial audio are supported.
 - **Four quality modes:** Auto HLS, 96, 64, and 32 kbps AAC+.
 - **Sleep timer:** 15, 30, 60, or 90 minutes.
-- **Update checks:** Record checks GitHub Releases once a day and reports new versions. A manual check is available from the app menu.
+- **Automatic updates:** Record checks a signed update feed once a day. Install a new version in the app, postpone it until tomorrow, or skip it. A manual check is available from the app menu.
 - **Accessibility:** VoiceOver, keyboard navigation, Reduce Motion, Reduce Transparency, and increased contrast.
 
 ### Interface
@@ -192,7 +192,7 @@ Build the installer DMG:
 - `AVPlayer` playback with automatic reconnection after network errors and Mac sleep.
 - Mono and stereo spatialization is explicitly enabled for AirPods.
 - Russian and English String Catalogs with system plural rules.
-- Lightweight GitHub Releases update checks with a 24-hour interval and `ETag` caching. Updates always open in the browser and are never installed silently.
+- Sparkle 2.9.4 updates with a signed appcast, EdDSA archive validation, daily checks, download progress, and an in-app SwiftUI update panel.
 - ImageIO downsamples station icons and artwork during decoding.
 - Favorites, history, statistics, and settings are stored locally.
 
