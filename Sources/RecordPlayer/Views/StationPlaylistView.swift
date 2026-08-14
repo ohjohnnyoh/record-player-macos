@@ -15,11 +15,16 @@ struct StationDetailView: View {
     private var currentTrack: Track? { state.nowPlaying[station.id] }
     private var isCurrent: Bool { state.currentStation?.id == station.id }
     private var isPlaying: Bool { isCurrent && state.player.state == .playing }
-    private var currentSongTitle: String {
-        guard let song = currentTrack?.displaySong, !song.isEmpty else {
-            return L10n.string("Прямой эфир")
+    private var currentTrackLine: String {
+        let song = currentTrack?.displaySong ?? ""
+        let artist = currentTrack?.displayArtist ?? ""
+
+        switch (song.isEmpty, artist.isEmpty) {
+        case (true, true): return L10n.string("Прямой эфир")
+        case (false, true): return song
+        case (true, false): return artist
+        case (false, false): return "\(song) - \(artist)"
         }
-        return song
     }
 
     var body: some View {
@@ -97,62 +102,69 @@ struct StationDetailView: View {
         VStack(alignment: .leading, spacing: 0) {
             Spacer(minLength: 12)
 
+            if !station.genreNames.isEmpty {
+                genreTags
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.bottom, 8)
+            }
+
             currentArtwork
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(currentSongTitle)
-                    .font(.system(size: 18, weight: .bold))
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                if let artist = currentTrack?.displayArtist, !artist.isEmpty {
-                    Text(artist)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Theme.secondaryText)
-                        .lineLimit(1)
-                }
-
-                HStack(spacing: 6) {
-                    CachedImage(url: station.iconURL, contentMode: .fit, maxPixel: 64) { Color.clear }
-                        .frame(width: 18, height: 18)
-
-                    Text(station.title)
-                        .font(.system(size: 11.5, weight: .semibold))
-                        .foregroundStyle(accent)
-                        .lineLimit(1)
-                }
-                .padding(.top, 3)
-            }
+            MarqueeTrackTitle(text: currentTrackLine)
+                .frame(height: 23)
             .padding(.top, 17)
+
+            controls
+                .padding(.top, 17)
+                .frame(maxWidth: .infinity, alignment: .center)
+
+            Spacer(minLength: 16)
+
+            stationFooter
+                .offset(y: 10)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxHeight: .infinity)
+    }
+
+    private var genreTags: some View {
+        HStack(spacing: 6) {
+            ForEach(station.genreNames.prefix(3), id: \.self) { genre in
+                Text(genre)
+                    .font(.system(size: 9.5, weight: .semibold))
+                    .foregroundStyle(Theme.secondaryText)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.white.opacity(0.055), in: Capsule())
+            }
+        }
+    }
+
+    private var stationFooter: some View {
+        HStack(alignment: .center, spacing: 12) {
+            HStack(spacing: 6) {
+                CachedImage(url: station.iconURL, contentMode: .fit, maxPixel: 64) { Color.clear }
+                    .frame(width: 18, height: 18)
+
+                Text(station.title)
+                    .font(.system(size: 11.5, weight: .semibold))
+                    .foregroundStyle(accent)
+                    .lineLimit(1)
+            }
+
+            Spacer(minLength: 8)
 
             if let description = station.tooltip?.trimmed, !description.isEmpty {
                 Text(description)
                     .font(.system(size: 11))
                     .foregroundStyle(Theme.tertiaryText)
                     .lineLimit(2)
-                    .padding(.top, 10)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
             }
-
-            controls
-                .padding(.top, 17)
-
-            if !station.genreNames.isEmpty {
-                HStack(spacing: 6) {
-                    ForEach(station.genreNames.prefix(3), id: \.self) { genre in
-                        Text(genre)
-                            .font(.system(size: 9.5, weight: .semibold))
-                            .foregroundStyle(Theme.secondaryText)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(.white.opacity(0.055), in: Capsule())
-                    }
-                }
-                .padding(.top, 14)
-            }
-
-            Spacer(minLength: 20)
         }
-        .frame(maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
     }
 
     private var currentArtwork: some View {
@@ -191,74 +203,100 @@ struct StationDetailView: View {
     }
 
     private var controls: some View {
-        HStack(spacing: 18) {
-            Button {
-                state.step(by: -1)
-                query = ""
-            } label: {
-                Image(systemName: "backward.fill")
-                    .font(.system(size: 15, weight: .semibold))
-                    .frame(width: 32, height: 32)
-                    .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(Color.primary.opacity(0.84))
-            .disabled(state.stations.isEmpty)
-            .accessibilityLabel("Предыдущая станция")
-            .help("Предыдущая станция")
+        // Play задаёт абсолютный центр. Остальные кнопки лежат в отдельных
+        // слоях и не могут сдвинуть главную ось даже при изменении ширины.
+        ZStack {
+            HStack(spacing: 18) {
+                previousStationButton
 
-            Button {
-                if isCurrent {
-                    state.togglePlayPause()
-                } else {
-                    state.startPlayback(station)
-                }
-            } label: {
-                ZStack {
-                    Circle().fill(accent)
-                    if isCurrent && state.player.state == .connecting {
-                        ProgressView().controlSize(.small).tint(.white)
-                    } else {
-                        Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.white)
-                            .offset(x: isPlaying ? 0 : 1.5)
-                    }
-                }
-                .frame(width: 46, height: 46)
-                .shadow(color: accent.opacity(0.32), radius: 12, y: 5)
-            }
-            .buttonStyle(StationPlayButtonStyle())
-            .accessibilityLabel(L10n.string(isPlaying ? "Пауза" : "Играть"))
+                Color.clear
+                    .frame(width: 46, height: 46)
 
-            Button {
-                state.step(by: 1)
-                query = ""
-            } label: {
-                Image(systemName: "forward.fill")
-                    .font(.system(size: 15, weight: .semibold))
-                    .frame(width: 32, height: 32)
-                    .contentShape(Circle())
+                nextStationButton
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(Color.primary.opacity(0.84))
-            .disabled(state.stations.isEmpty)
-            .accessibilityLabel("Следующая станция")
-            .help("Следующая станция")
 
-            Button {
-                state.toggleFavorite(station)
-            } label: {
-                Image(systemName: state.isFavorite(station) ? "heart.fill" : "heart")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(state.isFavorite(station) ? accent : Color.primary)
-                    .frame(width: 34, height: 34)
-                    .background(.white.opacity(0.06), in: Circle())
-                    .overlay { Circle().strokeBorder(.white.opacity(0.10), lineWidth: 1) }
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(L10n.string(state.isFavorite(station) ? "Убрать из избранного" : "В избранное"))
+            playPauseButton
+
+            favoriteButton
+                .offset(x: 100)
         }
+        .frame(maxWidth: .infinity)
+        .frame(height: 46)
+    }
+
+    private var previousStationButton: some View {
+        Button {
+            state.step(by: -1)
+            query = ""
+        } label: {
+            Image(systemName: "backward.fill")
+                .font(.system(size: 15, weight: .semibold))
+                .frame(width: 32, height: 32)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Color.primary.opacity(0.84))
+        .disabled(state.stations.isEmpty)
+        .accessibilityLabel("Предыдущая станция")
+        .help("Предыдущая станция")
+    }
+
+    private var playPauseButton: some View {
+        Button {
+            if isCurrent {
+                state.togglePlayPause()
+            } else {
+                state.startPlayback(station)
+            }
+        } label: {
+            ZStack {
+                Circle().fill(accent)
+                if isCurrent && state.player.state == .connecting {
+                    ProgressView().controlSize(.small).tint(.white)
+                } else {
+                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(.white)
+                        .offset(x: isPlaying ? 0 : 1.5)
+                }
+            }
+            .frame(width: 46, height: 46)
+            .shadow(color: accent.opacity(0.32), radius: 12, y: 5)
+        }
+        .buttonStyle(StationPlayButtonStyle())
+        .accessibilityLabel(L10n.string(isPlaying ? "Пауза" : "Играть"))
+    }
+
+    private var nextStationButton: some View {
+        Button {
+            state.step(by: 1)
+            query = ""
+        } label: {
+            Image(systemName: "forward.fill")
+                .font(.system(size: 15, weight: .semibold))
+                .frame(width: 32, height: 32)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Color.primary.opacity(0.84))
+        .disabled(state.stations.isEmpty)
+        .accessibilityLabel("Следующая станция")
+        .help("Следующая станция")
+    }
+
+    private var favoriteButton: some View {
+        Button {
+            state.toggleFavorite(station)
+        } label: {
+            Image(systemName: state.isFavorite(station) ? "heart.fill" : "heart")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(state.isFavorite(station) ? accent : Color.primary)
+                .frame(width: 34, height: 34)
+                .background(.white.opacity(0.06), in: Circle())
+                .overlay { Circle().strokeBorder(.white.opacity(0.10), lineWidth: 1) }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(L10n.string(state.isFavorite(station) ? "Убрать из избранного" : "В избранное"))
     }
 
     // MARK: - History
@@ -428,6 +466,122 @@ private struct StationPlayButtonStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.94 : 1)
             .brightness(configuration.isPressed ? -0.06 : 0)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+/// Однострочный заголовок, который центрируется, пока помещается в колонку, и
+/// превращается в спокойную бегущую строку только при реальном переполнении.
+private struct MarqueeTrackTitle: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    let text: String
+
+    @State private var textWidth: CGFloat = 0
+    @State private var progress: CGFloat = 0
+
+    private let horizontalInset: CGFloat = 12
+    private let gap: CGFloat = 36
+
+    var body: some View {
+        if reduceMotion {
+            title
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .center)
+        } else {
+            GeometryReader { proxy in
+                let availableWidth = max(0, proxy.size.width - horizontalInset * 2)
+                let overflow = max(0, textWidth - availableWidth)
+                let animationID = "\(text)|\(Int(textWidth.rounded()))|\(Int(proxy.size.width.rounded()))"
+
+                HStack(spacing: 0) {
+                    Spacer(minLength: horizontalInset)
+
+                    ZStack {
+                        if overflow > 1 {
+                            HStack(spacing: gap) {
+                                measuredTitle
+                                title
+                                    .lineLimit(1)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                    .accessibilityHidden(true)
+                            }
+                            .offset(x: -(textWidth + gap) * progress)
+                            .frame(width: availableWidth, alignment: .leading)
+                        } else {
+                            measuredTitle
+                        }
+                    }
+                    .frame(width: availableWidth, height: proxy.size.height)
+                    .clipped()
+                    .mask {
+                        if overflow > 1 {
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .clear, location: 0),
+                                    .init(color: .white, location: 0.055),
+                                    .init(color: .white, location: 0.945),
+                                    .init(color: .clear, location: 1)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        } else {
+                            Color.white
+                        }
+                    }
+
+                    Spacer(minLength: horizontalInset)
+                }
+                .frame(width: proxy.size.width, height: proxy.size.height)
+                .clipped()
+                .onPreferenceChange(MarqueeTextWidthKey.self) { width in
+                    if abs(textWidth - width) > 0.5 { textWidth = width }
+                }
+                .task(id: animationID) {
+                    var reset = Transaction()
+                    reset.disablesAnimations = true
+                    withTransaction(reset) { progress = 0 }
+
+                    guard overflow > 1 else { return }
+                    try? await Task.sleep(nanoseconds: 1_100_000_000)
+                    guard !Task.isCancelled else { return }
+
+                    let duration = max(5.5, Double((textWidth + gap) / 28))
+                    withAnimation(.linear(duration: duration).repeatForever(autoreverses: false)) {
+                        progress = 1
+                    }
+                }
+            }
+        }
+    }
+
+    private var title: some View {
+        Text(text)
+            .font(.system(size: 15, weight: .semibold))
+            .accessibilityLabel(text)
+    }
+
+    private var measuredTitle: some View {
+        title
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
+            .background {
+                GeometryReader { measurement in
+                    Color.clear.preference(
+                        key: MarqueeTextWidthKey.self,
+                        value: measurement.size.width
+                    )
+                }
+            }
+    }
+}
+
+private struct MarqueeTextWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 

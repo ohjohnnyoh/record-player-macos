@@ -2,6 +2,12 @@ import AppKit
 import SwiftUI
 
 struct RootView: View {
+    /// Menu и AppKit search field в unified toolbar рисуют bezel примерно на
+    /// 2 pt выше, чем системный ControlGroup. Лёгкое вертикальное выравнивание
+    /// оставляет нативный стиль, цвет и промежутки, но сводит внешние границы.
+    private static let toolbarInputVerticalScale: CGFloat = 0.92
+    private static let toolbarControlRadius: CGFloat = 9
+
     @Environment(\.appAccent) private var accent
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @EnvironmentObject private var state: AppState
@@ -94,51 +100,58 @@ struct RootView: View {
             ToolbarSpacer(.flexible)
         }
 
-        ToolbarItemGroup(placement: .primaryAction) {
-            Button {
-                NSApp.sendAction(
-                    #selector(NSSplitViewController.toggleSidebar(_:)),
-                    to: nil,
-                    from: nil
-                )
-            } label: {
-                Label("Показать или скрыть боковую панель", systemImage: "sidebar.leading")
+        ToolbarItem(placement: .primaryAction) {
+            ControlGroup {
+                Button {
+                    NSApp.sendAction(
+                        #selector(NSSplitViewController.toggleSidebar(_:)),
+                        to: nil,
+                        from: nil
+                    )
+                } label: {
+                    Label("Показать или скрыть боковую панель", systemImage: "sidebar.leading")
+                }
+                .help("Показать или скрыть боковую панель")
+
+                Button {
+                    NSApp.activate(ignoringOtherApps: true)
+                    openWindow(id: "mini")
+                } label: {
+                    Label("Мини-плеер", systemImage: "pip")
+                }
+                .help("Мини-плеер (⌥⌘M)")
+
+                Button {
+                    state.playRandom()
+                } label: {
+                    Label("Случайная станция", systemImage: "shuffle")
+                }
+                .help("Случайная станция (⇧⌘R)")
+
+                AccentMenuButton(selection: $state.accent)
             }
-            .help("Показать или скрыть боковую панель")
+            .controlSize(.regular)
         }
 
         ToolbarItemGroup(placement: .primaryAction) {
-            Button {
-                NSApp.activate(ignoringOtherApps: true)
-                openWindow(id: "mini")
-            } label: {
-                Label("Мини-плеер", systemImage: "pip")
-            }
-            .help("Мини-плеер (⌥⌘M)")
-
-            Button {
-                state.playRandom()
-            } label: {
-                Label("Случайная станция", systemImage: "shuffle")
-            }
-            .help("Случайная станция (⇧⌘R)")
-        }
-
-        ToolbarItemGroup(placement: .primaryAction) {
-            AccentMenuButton(selection: $state.accent)
 
             Picker("Сортировка", selection: $state.sortOrder) {
                 ForEach(SortOrder.allCases) { Text($0.title).tag($0) }
             }
             .pickerStyle(.menu)
+            .controlSize(.small)
             .frame(width: 165)
+            .scaleEffect(x: 1, y: Self.toolbarInputVerticalScale)
+            .clipShape(RoundedRectangle(cornerRadius: Self.toolbarControlRadius, style: .continuous))
 
             FixedToolbarSearchField(
                 text: $state.searchText,
-                prompt: L10n.string("Поиск")
+                prompt: ""
             )
             .frame(width: 170, height: 22)
             .fixedSize(horizontal: true, vertical: false)
+            .scaleEffect(x: 1, y: Self.toolbarInputVerticalScale)
+            .clipShape(RoundedRectangle(cornerRadius: Self.toolbarControlRadius, style: .continuous))
         }
     }
 }
