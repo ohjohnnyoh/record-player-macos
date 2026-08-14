@@ -6,6 +6,33 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Record</title>
         <item>
+            <title>1.8</title>
+            <pubDate>Fri, 14 Aug 2026 13:20:26 +0300</pubDate>
+            <sparkle:version>9</sparkle:version>
+            <sparkle:shortVersionString>1.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description sparkle:format="markdown"><![CDATA[# Record 1.8
+
+## Что нового
+
+- Play теперь всегда находится точно по центру.
+- Название и артист показываются одной строкой.
+- Длинные названия плавно прокручиваются без наезда на историю эфира.
+- Жанры, станция и описание получили новую компоновку.
+- Toolbar и поиск приведены к единой геометрии.
+
+## What is new
+
+- Play now stays exactly centered.
+- Track and artist appear on one line.
+- Long titles scroll smoothly without overlapping broadcast history.
+- Genre, station, and description elements use the new layout.
+- Toolbar and search geometry is now consistent.
+]]></description>
+            <enclosure url="https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.8/Record-1.8.zip" length="2954504" type="application/octet-stream" sparkle:edSignature="9rwIcxpah09wwK91djAnU3yVx59JUiZzEAmnjHfpFAvcqqDFnBDC3RnxxuaSqj8l/zYautFtYQXDybnGUcjhBw=="/>
+        </item>
+        <item>
             <title>1.7</title>
             <pubDate>Fri, 14 Aug 2026 01:29:14 +0300</pubDate>
             <sparkle:version>8</sparkle:version>
@@ -35,6 +62,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: 4wJ6eno2fKVVgjDWPTnerK0AFXYnRX91T5Ug3V24jlqr1u+FP94SBLfCzoM3bZG/TiPLHaUDd6b6U5z7UNX9DQ==
-length: 2002
+edSignature: owcL7p3QV6jZO9dntkGxjWYvtapTHYazKDFOm54dvdmMab3nmSD5MTYfhn4b+vuElU9SZJmO0s8gF8xMMF3HCw==
+length: 3548
 -->
