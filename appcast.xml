@@ -6,6 +6,31 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Record</title>
         <item>
+            <title>1.9</title>
+            <pubDate>Mon, 17 Aug 2026 18:59:57 +0300</pubDate>
+            <sparkle:version>10</sparkle:version>
+            <sparkle:shortVersionString>1.9</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description sparkle:format="markdown"><![CDATA[# Record 1.9
+
+## Что нового
+
+- Поле поиска и сортировка в верхней панели снова выглядят системными.
+- Убрано вертикальное сжатие элементов панели, искажавшее шрифт и рамку.
+- Полю поиска вернули подсказку, лупу и кнопку очистки от macOS.
+- Размеры элементов верхней панели приведены к одному.
+
+## What is new
+
+- The search field and sort control in the toolbar look native again.
+- Removed the vertical squeeze that distorted their text and bezel.
+- The search field regains the system placeholder, magnifier, and clear button.
+- Toolbar controls now share a single control size.
+]]></description>
+            <enclosure url="https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.9/Record-1.9.zip" length="2948954" type="application/octet-stream" sparkle:edSignature="iGFWVrUyPoAow4T6EPY8aOUB+letxDAvTufAq6NyNu1Hs+f7ireLJSH8R9KCwCItA5xY28r9rBB5me38o8iRBA=="/>
+        </item>
+        <item>
             <title>1.8</title>
             <pubDate>Fri, 14 Aug 2026 13:20:26 +0300</pubDate>
             <sparkle:version>9</sparkle:version>
@@ -62,6 +87,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: owcL7p3QV6jZO9dntkGxjWYvtapTHYazKDFOm54dvdmMab3nmSD5MTYfhn4b+vuElU9SZJmO0s8gF8xMMF3HCw==
-length: 3548
+edSignature: 6lA6wjtySwZOJbnCyHjyW+bD0aIhbFp9GmNMVCQxpVJZFywKDWBqJZjJUBx96ts2gDVkp7uPIeoHarBcPDAiBg==
+length: 5108
 -->

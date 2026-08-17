@@ -11,3 +11,33 @@ build/
 *.xcworkspace/
 xcuserdata/
 DerivedData/
+
+# Рабочие файлы агентов и заметки — в публичный репозиторий не попадают.
+# Дублируют локальный core.excludesFile намеренно: та настройка живёт только
+# на одной машине, а этот список едет вместе с репозиторием, поэтому защита
+# работает и после клонирования, и при `git add -A` из любого инструмента.
+AGENTS.md
+CLAUDE.md
+spec.md
+tasks.md
+.claude/
+.codex/
+.local-agent-gitignore
+docs/wiki/
+.idea/
+*.swp
+*.swo
+
+# Секреты. Приватный ключ Sparkle хранится в Keychain и здесь не появляется,
+# но список нужен, чтобы случайный файл рядом не уехал в публичный доступ.
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.pfx
+*.key
+*.mobileprovision
+*Secrets.plist
+*Secrets.xcconfig
+secrets/
