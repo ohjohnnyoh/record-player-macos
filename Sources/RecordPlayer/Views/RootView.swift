@@ -2,12 +2,6 @@ import AppKit
 import SwiftUI
 
 struct RootView: View {
-    /// Menu и AppKit search field в unified toolbar рисуют bezel примерно на
-    /// 2 pt выше, чем системный ControlGroup. Лёгкое вертикальное выравнивание
-    /// оставляет нативный стиль, цвет и промежутки, но сводит внешние границы.
-    private static let toolbarInputVerticalScale: CGFloat = 0.92
-    private static let toolbarControlRadius: CGFloat = 9
-
     @Environment(\.appAccent) private var accent
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @EnvironmentObject private var state: AppState
@@ -135,23 +129,23 @@ struct RootView: View {
 
         ToolbarItemGroup(placement: .primaryAction) {
 
+            // Оба элемента рисует система: без вертикального сжатия и без
+            // обрезки по своему радиусу. Оба приёма ломали системный вид —
+            // сжатие искажало пропорции текста и рамки, обрезка срезала
+            // собственный кант контрола и кольцо фокуса.
             Picker("Сортировка", selection: $state.sortOrder) {
                 ForEach(SortOrder.allCases) { Text($0.title).tag($0) }
             }
             .pickerStyle(.menu)
-            .controlSize(.small)
             .frame(width: 165)
-            .scaleEffect(x: 1, y: Self.toolbarInputVerticalScale)
-            .clipShape(RoundedRectangle(cornerRadius: Self.toolbarControlRadius, style: .continuous))
 
+            // Подсказка обязательна: без неё NSSearchField центрирует лупу,
+            // и раньше это лечили самодельной иконкой поверх поля.
             FixedToolbarSearchField(
                 text: $state.searchText,
-                prompt: ""
+                prompt: L10n.string("Поиск станции или жанра")
             )
-            .frame(width: 170, height: 22)
-            .fixedSize(horizontal: true, vertical: false)
-            .scaleEffect(x: 1, y: Self.toolbarInputVerticalScale)
-            .clipShape(RoundedRectangle(cornerRadius: Self.toolbarControlRadius, style: .continuous))
+            .frame(width: 190)
         }
     }
 }

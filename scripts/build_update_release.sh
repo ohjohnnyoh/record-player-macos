@@ -60,8 +60,8 @@ echo "==> Проверки"
 codesign --verify --deep --strict "$PROJECT_ROOT/build/Record.app"
 unzip -t "$ARCHIVE" >/dev/null
 xmllint --noout "$APPCAST"
-rg -q 'sparkle:edSignature=' "$APPCAST"
-rg -q "<sparkle:version>$BUILD_NUMBER</sparkle:version>" "$APPCAST"
+grep -q 'sparkle:edSignature=' "$APPCAST"
+grep -q "<sparkle:version>$BUILD_NUMBER</sparkle:version>" "$APPCAST"
 
 ARCHIVE_SHA="$(shasum -a 256 "$ARCHIVE" | awk '{print $1}')"
 

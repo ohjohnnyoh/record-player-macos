@@ -90,13 +90,13 @@ extension Notification.Name {
     static let focusStationSearch = Notification.Name("Record.focusStationSearch")
 }
 
-/// Нативное поле поиска фиксированного размера для правой группы toolbar.
+/// Поле поиска фиксированной ширины для правой группы toolbar.
 ///
-/// SwiftUI `searchable` на macOS создаёт адаптивный `NSSearchToolbarItem`. При
-/// анимации `NavigationSplitView` он временно превращался в кнопку и сразу
-/// раскрывался обратно. Обычный `NSSearchField` сохраняет заданные 170 pt во всех
-/// состояниях sidebar, но оставляет системные значки поиска и очистки, фокус и
-/// стандартное поведение AppKit.
+/// SwiftUI `searchable` на macOS создаёт адаптивный `NSSearchToolbarItem`: при
+/// анимации `NavigationSplitView` он схлопывался в кнопку и тут же раскрывался
+/// обратно. Обычный `NSSearchField` держит заданную ширину во всех состояниях
+/// боковой панели и при этом остаётся полностью системным — со своей лупой,
+/// кнопкой очистки, фокусом и меню недавних запросов.
 struct FixedToolbarSearchField: NSViewRepresentable {
     @Binding var text: String
     let prompt: String
@@ -105,27 +105,25 @@ struct FixedToolbarSearchField: NSViewRepresentable {
         Coordinator(text: $text)
     }
 
-    func makeNSView(context: Context) -> SearchFieldContainer {
-        let container = SearchFieldContainer()
-        let field = container.field
+    func makeNSView(context: Context) -> NSSearchField {
+        let field = NSSearchField()
         field.delegate = context.coordinator
         field.placeholderString = prompt
         field.stringValue = text
         field.sendsSearchStringImmediately = true
         field.sendsWholeSearchString = false
-        field.controlSize = .small
-        (field.cell as? NSSearchFieldCell)?.searchButtonCell = nil
+        // Размер совпадает с остальными элементами toolbar. Раньше поле было
+        // мелким, а разницу в высоте компенсировали вертикальным сжатием всей
+        // группы — из-за него текст и рамка переставали выглядеть системными.
+        field.controlSize = .regular
         field.setContentHuggingPriority(.required, for: .horizontal)
         field.setContentCompressionResistancePriority(.required, for: .horizontal)
-        field.setAccessibilityLabel(L10n.string("Поиск"))
         context.coordinator.attach(to: field)
-        return container
+        return field
     }
 
-    func updateNSView(_ container: SearchFieldContainer, context: Context) {
-        let field = container.field
+    func updateNSView(_ field: NSSearchField, context: Context) {
         context.coordinator.text = $text
-        (field.cell as? NSSearchFieldCell)?.searchButtonCell = nil
         if field.stringValue != text { field.stringValue = text }
         if field.placeholderString != prompt { field.placeholderString = prompt }
     }
@@ -138,6 +136,12 @@ struct FixedToolbarSearchField: NSViewRepresentable {
         init(text: Binding<String>) {
             self.text = text
             super.init()
+        }
+
+        deinit {
+            if let focusObserver {
+                NotificationCenter.default.removeObserver(focusObserver)
+            }
         }
 
         func attach(to field: NSSearchField) {
@@ -157,52 +161,6 @@ struct FixedToolbarSearchField: NSViewRepresentable {
             if text.wrappedValue != field.stringValue {
                 text.wrappedValue = field.stringValue
             }
-        }
-
-        deinit {
-            if let focusObserver {
-                NotificationCenter.default.removeObserver(focusObserver)
-            }
-        }
-    }
-
-    /// `NSSearchField` центрирует встроенную кнопку поиска, когда placeholder
-    /// пуст. Убираем только эту кнопку и возвращаем один тот же системный символ
-    /// на фиксированное место слева. Само поле остаётся нативным.
-    final class SearchFieldContainer: NSView {
-        let field = NSSearchField()
-
-        override init(frame frameRect: NSRect) {
-            super.init(frame: frameRect)
-
-            let icon = PassThroughImageView()
-            icon.image = NSImage(systemSymbolName: "magnifyingglass", accessibilityDescription: nil)
-            icon.contentTintColor = .secondaryLabelColor
-            icon.imageScaling = .scaleProportionallyDown
-            icon.setAccessibilityElement(false)
-
-            field.translatesAutoresizingMaskIntoConstraints = false
-            icon.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(field)
-            addSubview(icon)
-
-            NSLayoutConstraint.activate([
-                field.leadingAnchor.constraint(equalTo: leadingAnchor),
-                field.trailingAnchor.constraint(equalTo: trailingAnchor),
-                field.topAnchor.constraint(equalTo: topAnchor),
-                field.bottomAnchor.constraint(equalTo: bottomAnchor),
-                icon.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-                icon.centerYAnchor.constraint(equalTo: centerYAnchor),
-                icon.widthAnchor.constraint(equalToConstant: 12),
-                icon.heightAnchor.constraint(equalToConstant: 12),
-            ])
-        }
-
-        @available(*, unavailable)
-        required init?(coder: NSCoder) { fatalError("init(coder:) не поддерживается") }
-
-        private final class PassThroughImageView: NSImageView {
-            override func hitTest(_ point: NSPoint) -> NSView? { nil }
         }
     }
 }
