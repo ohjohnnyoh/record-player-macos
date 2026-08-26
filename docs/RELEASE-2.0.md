@@ -48,6 +48,16 @@ xattr -dr com.apple.quarantine /Applications/Record.app
 **Системная панель.** Для выпусков показывает реальную длительность и позицию,
 работают перемотка и ⏪⏩ из Пункта управления. Для эфира всё как раньше.
 
+### Исправления после ревизии
+
+- Доигранный выпуск включается заново, а не оставляет плеер без звука.
+- Обновление списка станций не подменяет играющий выпуск станцией.
+- Нажатие на полосу перемотки не отправляет выпуск в начало.
+- Системные Play и Pause работают и для выпусков.
+- Медленная буферизация выпуска больше не считается зависшим потоком.
+- Кольцо клавиатурного фокуса на карточках видно, действия строк чарта и
+  выпуска доступны VoiceOver.
+
 ### Что осталось прежним
 
 Радио не изменилось: те же станции, переподключение, восстановление после сна,
@@ -108,6 +118,16 @@ acceptable. There is deliberately no auto-advance to the next episode.
 
 **System panel.** For episodes it shows real duration and position, with seeking
 and ⏪⏩ from Control Center. For live radio everything works as before.
+
+### Fixes from the pre-release review
+
+- A finished episode restarts instead of leaving the player silent.
+- Refreshing the station list no longer replaces a playing episode with a station.
+- Clicking the scrubber no longer jumps the episode back to the start.
+- System Play and Pause now work for episodes.
+- Slow episode buffering is no longer treated as a stalled stream.
+- The keyboard focus ring is visible on cards, and chart and episode row
+  actions are reachable with VoiceOver.
 
 ### What stayed the same
 
