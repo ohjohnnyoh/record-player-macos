@@ -36,6 +36,10 @@ struct PlaybackScrubber: View {
                 in: 0...max(duration, 1),
                 onEditingChanged: { editing in
                     if editing {
+                        // Значение ползунка приходит уже после начала жеста, а на
+                        // одиночном нажатии без перетаскивания — не приходит вовсе.
+                        // Без засева отпускание отправило бы выпуск в самое начало.
+                        draft = min(max(timeline.position, 0), max(duration, 1))
                         isDragging = true
                         timeline.isScrubbing = true
                     } else {
@@ -57,6 +61,14 @@ struct PlaybackScrubber: View {
             .font(.system(size: compact ? 9 : 10))
             .monospacedDigit()
             .foregroundStyle(Theme.tertiaryText)
+        }
+        .onDisappear {
+            // Вью может исчезнуть прямо посреди жеста — например, если закрыть
+            // страницу подкаста. Забытый флаг заморозил бы позицию во всём
+            // приложении: `PlaybackTimeline` общий.
+            guard isDragging else { return }
+            isDragging = false
+            timeline.isScrubbing = false
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(L10n.string("Позиция в выпуске"))

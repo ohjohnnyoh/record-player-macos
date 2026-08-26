@@ -46,7 +46,13 @@ struct ChartsView: View {
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if entries.isEmpty {
             message(icon: "music.note.list", title: L10n.string("Чарт пуст"),
-                    subtitle: L10n.string("Сервер не вернул ни одной позиции.")) { EmptyView() }
+                    subtitle: L10n.string("Сервер не вернул ни одной позиции.")) {
+                Button("Обновить") {
+                    Task { await state.loadChart(kind, force: true) }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(accent)
+            }
         } else {
             list
         }
@@ -121,7 +127,6 @@ private struct ChartRow: View, Equatable {
     let isPreviewing: Bool
     let onTogglePreview: () -> Void
 
-    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hovered = false
 
@@ -133,7 +138,10 @@ private struct ChartRow: View, Equatable {
 
     private var entry: ChartEntry { ranked.entry }
     private var canPreview: Bool { entry.previewURL != nil }
-    private var showsActions: Bool { hovered || voiceOverEnabled || isPreviewing }
+    /// VoiceOver сюда не входит намеренно: строка объявлена одним элементом,
+    /// и показанные кнопки всё равно вырезаны из дерева доступности. Вместо них
+    /// у элемента есть именованные действия.
+    private var showsActions: Bool { hovered || isPreviewing }
 
     var body: some View {
         HStack(spacing: 11) {
@@ -180,6 +188,15 @@ private struct ChartRow: View, Equatable {
         .accessibilityHint(canPreview ? L10n.string("Двойное нажатие включает фрагмент") : "")
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { if canPreview { onTogglePreview() } }
+        .accessibilityAction(named: Text(L10n.string("Скопировать название")), copyTitle)
+        .accessibilityActions {
+            if let url = entry.appleMusicURL {
+                Button("Открыть в Apple Music") { NSWorkspace.shared.open(url) }
+            }
+            if let url = entry.siteURL {
+                Button("Открыть на сайте") { NSWorkspace.shared.open(url) }
+            }
+        }
         .contextMenu { menu }
     }
 

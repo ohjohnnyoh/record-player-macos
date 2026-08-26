@@ -126,6 +126,9 @@ final class AppState: ObservableObject {
     @Published private(set) var podcasts: [Podcast] = []
     @Published private(set) var isLoadingPodcasts = false
     @Published private(set) var podcastsError: String?
+    /// Был ли каталог хоть раз получен по сети в этом запуске. Отдельно от
+    /// пустоты списка, который засевается из дискового кэша.
+    private var podcastsLoaded = false
 
     /// Открытый подкаст. Отдельно от `playlistStation`: полноразмерный режим
     /// станции жёстко завязан на тип `Station`, и смешивать их в одном поле
@@ -247,7 +250,7 @@ final class AppState: ObservableObject {
             }
             .store(in: &cancellables)
 
-        player.onFinished = { [weak self] in self?.handleEpisodeFinished() }
+        player.onFinished = { [weak self] url in self?.handleEpisodeFinished(url: url) }
 
         // Позицию сохраняем не на каждый тик, а раз в несколько секунд:
         // иначе файл прогресса переписывался бы дважды в секунду.
@@ -352,7 +355,10 @@ final class AppState: ObservableObject {
             stations = fetched
             rebuildIndexes()
             recomputeVisible()
-            if currentStation == nil { restoreLastStation() }
+            // Во время выпуска станцию не поднимаем: `currentStation` и
+            // `currentEpisode` взаимно исключают друг друга, а иначе время
+            // подкаста начнёт начисляться неигравшей станции.
+            if currentStation == nil, currentEpisode == nil { restoreLastStation() }
             // Если станция уже играет — обновляем её данные из свежего списка.
             if let current = currentStation,
                let refreshed = fetched.first(where: { $0.id == current.id }) {
@@ -444,6 +450,8 @@ final class AppState: ObservableObject {
                 player.pause()
                 saveEpisodeProgress()
             } else {
+                // Как и любой другой старт звука: одновременно звучит что-то одно.
+                preview.stop()
                 player.resume()
             }
             return
@@ -563,7 +571,9 @@ final class AppState: ObservableObject {
     /// Каждый чарт грузится и падает независимо: у новинок неофициальный источник,
     /// и его поломка не должна гасить остальные две вкладки.
     func loadChart(_ kind: ChartKind, force: Bool = false) async {
-        if !force, charts[kind] != nil { return }
+        // Пустой ответ не считаем загруженным: иначе разовый сбой на сервере
+        // запирал бы вкладку до перезапуска приложения.
+        if !force, let cached = charts[kind], !cached.isEmpty { return }
         if loadingCharts.contains(kind) { return }
 
         loadingCharts.insert(kind)
@@ -652,9 +662,13 @@ final class AppState: ObservableObject {
         ProgressStore.save(episodeProgress)
     }
 
-    private func handleEpisodeFinished() {
-        guard let episode = currentEpisode else { return }
+    private func handleEpisodeFinished(url: URL) {
+        // Сверяем адрес: доиграть мог предыдущий выпуск, а `currentEpisode`
+        // к этому моменту уже указывать на следующий.
+        guard let episode = currentEpisode, episode.audioURL == url else { return }
         let duration = player.timeline.duration
+        // Без длительности отметка «прослушано» превратилась бы в стирание прогресса.
+        guard duration > 0 else { return }
         episodeProgress[episode.id] = EpisodeProgress(
             episodeID: episode.id,
             position: duration,
@@ -713,7 +727,9 @@ final class AppState: ObservableObject {
     }
 
     func loadPodcasts(force: Bool = false) async {
-        if !force, !podcasts.isEmpty { return }
+        // Проверяем флаг, а не пустоту: каталог засевается из дискового кэша
+        // в `init`, и по непустому списку сеть не опрашивалась бы никогда.
+        if !force, podcastsLoaded { return }
         if isLoadingPodcasts { return }
 
         isLoadingPodcasts = podcasts.isEmpty
@@ -721,6 +737,7 @@ final class AppState: ObservableObject {
         do {
             podcasts = try await RecordAPI.fetchPodcasts()
                 .sorted { $0.sortOrder < $1.sortOrder }
+            podcastsLoaded = true
         } catch {
             // Показанный каталог не затираем — пусть останется прежний.
             if podcasts.isEmpty { podcastsError = error.localizedDescription }
@@ -868,11 +885,18 @@ final class AppState: ObservableObject {
 
     private func configureRemoteControl() {
         let remote = RemoteControl.shared
+        // macOS шлёт playCommand, а не toggle, — обрабатываем и эфир, и выпуск.
+        // Во время подключения команду глотаем: перезапуск сбросил бы буфер.
         remote.onPlay = { [weak self] in
-            guard let self, let station = self.currentStation else { return }
-            if self.player.state != .playing { self.startPlayback(station) }
+            guard let self, !self.player.state.isActive else { return }
+            self.togglePlayPause()
         }
-        remote.onPause = { [weak self] in self?.player.pause() }
+        // Через togglePlayPause, а не напрямую: у выпуска пауза обязана
+        // записать позицию, иначе теряется до восьми секунд прогресса.
+        remote.onPause = { [weak self] in
+            guard let self, self.player.state.isActive else { return }
+            self.togglePlayPause()
+        }
         remote.onToggle = { [weak self] in self?.togglePlayPause() }
         remote.onNextStation = { [weak self] in self?.step(by: 1) }
         remote.onSkip = { [weak self] delta in self?.skipInEpisode(by: delta) }

@@ -18,14 +18,15 @@ final class PreviewPlayer: ObservableObject {
     @Published private(set) var playingID: Int?
 
     private let player = AVPlayer()
-    private var endObserver: NSObjectProtocol?
+    private var tokens: [NSObjectProtocol] = []
+    private var statusObservation: NSKeyValueObservation?
 
     init() {
         player.actionAtItemEnd = .none
     }
 
     deinit {
-        if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
+        tokens.forEach(NotificationCenter.default.removeObserver)
     }
 
     func toggle(id: Int, url: URL, volume: Double) {
@@ -40,12 +41,25 @@ final class PreviewPlayer: ObservableObject {
         clearObserver()
 
         let item = AVPlayerItem(url: url)
-        endObserver = NotificationCenter.default.addObserver(
+        tokens.append(NotificationCenter.default.addObserver(
             forName: AVPlayerItem.didPlayToEndTimeNotification,
             object: item, queue: .main
         ) { [weak self] _ in
             // Фрагмент закончился сам — это норма, а не обрыв.
             MainActor.assumeIsolated { self?.stop() }
+        })
+        // Ссылки на фрагменты живут в чужом CDN и иногда отдают ошибку.
+        // Без этих двух наблюдателей строка так и осталась бы подсвеченной
+        // с кнопкой «стоп», хотя звука нет.
+        tokens.append(NotificationCenter.default.addObserver(
+            forName: AVPlayerItem.failedToPlayToEndTimeNotification,
+            object: item, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.stop() }
+        })
+        statusObservation = item.observe(\.status, options: [.new]) { [weak self] item, _ in
+            guard item.status == .failed else { return }
+            Task { @MainActor in self?.stop() }
         }
 
         player.replaceCurrentItem(with: item)
@@ -62,9 +76,9 @@ final class PreviewPlayer: ObservableObject {
     }
 
     private func clearObserver() {
-        if let endObserver {
-            NotificationCenter.default.removeObserver(endObserver)
-            self.endObserver = nil
-        }
+        tokens.forEach(NotificationCenter.default.removeObserver)
+        tokens.removeAll()
+        statusObservation?.invalidate()
+        statusObservation = nil
     }
 }

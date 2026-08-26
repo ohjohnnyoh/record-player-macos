@@ -35,6 +35,10 @@ enum L10n {
         plural("%lld выпусков", count)
     }
 
+    static func podcastCount(_ count: Int) -> String {
+        plural("%lld подкастов", count)
+    }
+
     static func listeningSummary(stations: Int, duration: String) -> String {
         format("%@ · всего %@", stationCount(stations), duration)
     }

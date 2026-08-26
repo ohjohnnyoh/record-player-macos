@@ -157,6 +157,59 @@
         }
       }
     },
+    "%lld подкастов": {
+      "extractionState": "manual",
+      "localizations": {
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld подкаст"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld подкаста"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld подкастов"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld подкаста"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld podcast"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld podcasts"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld станций": {
       "extractionState": "manual",
       "localizations": {
@@ -2032,6 +2085,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copy Contents"
+          }
+        }
+      }
+    },
+    "Скрыть состав выпуска": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide episode tracklist"
           }
         }
       }

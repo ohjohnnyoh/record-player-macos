@@ -97,7 +97,10 @@ struct PodcastDetailView: View {
 
             primaryButton
 
-            if playsFromThisPodcast, state.player.timeline.duration > 0 {
+            // Условия на длительность здесь нет намеренно: `timeline` наверх
+            // ничего не пробрасывает, и этот экран о её приходе не узнал бы.
+            // Полоса сама подписана на неё и до готовности стоит неактивной.
+            if playsFromThisPodcast {
                 PlaybackScrubber(
                     timeline: state.player.timeline,
                     accent: accent,
@@ -347,7 +350,6 @@ private struct EpisodeRow: View, Equatable {
     let progress: EpisodeProgress?
     let onPlay: () -> Void
 
-    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @State private var hovered = false
     @State private var expanded = false
 
@@ -398,7 +400,9 @@ private struct EpisodeRow: View, Equatable {
 
                 Spacer(minLength: 8)
 
-                if !episode.playlistLines.isEmpty, hovered || voiceOverEnabled || expanded {
+                // VoiceOver сюда не входит: строка объявлена одним элементом,
+                // и кнопка всё равно недостижима — вместо неё именованное действие.
+                if !episode.playlistLines.isEmpty, hovered || expanded {
                     Button {
                         expanded.toggle()
                     } label: {
@@ -408,7 +412,22 @@ private struct EpisodeRow: View, Equatable {
                     .buttonStyle(.plain)
                     .foregroundStyle(Theme.secondaryText)
                     .help(L10n.string("Состав выпуска"))
-                    .accessibilityLabel(L10n.string("Состав выпуска"))
+                    .accessibilityHidden(true)
+                }
+            }
+            // Элемент объявляем здесь, а не на всём блоке: иначе раскрытый
+            // состав выпуска тоже вырезался бы из дерева доступности.
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(episode.title)
+            .accessibilityValue(accessibilityValue)
+            .accessibilityHint(L10n.string("Двойное нажатие включает выпуск"))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction(.default, onPlay)
+            .accessibilityActions {
+                if !episode.playlistLines.isEmpty {
+                    Button(L10n.string(expanded ? "Скрыть состав выпуска" : "Состав выпуска")) {
+                        expanded.toggle()
+                    }
                 }
             }
 
@@ -436,12 +455,6 @@ private struct EpisodeRow: View, Equatable {
         .contentShape(Rectangle())
         .onHover { hovered = $0 }
         .onTapGesture(perform: onPlay)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(episode.title)
-        .accessibilityValue(accessibilityValue)
-        .accessibilityHint(L10n.string("Двойное нажатие включает выпуск"))
-        .accessibilityAddTraits(.isButton)
-        .accessibilityAction(.default, onPlay)
         .contextMenu { menu }
     }
 

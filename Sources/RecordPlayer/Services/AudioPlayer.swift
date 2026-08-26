@@ -99,8 +99,10 @@ final class AudioPlayer: ObservableObject {
     private var isFileMode: Bool { source?.isFile ?? false }
     private var timeObserver: Any?
 
-    /// Вызывается, когда выпуск доигран до конца.
-    var onFinished: (() -> Void)?
+    /// Вызывается, когда выпуск доигран до конца. Передаёт адрес именно того
+    /// файла, который закончился: пока уведомление ждало главный поток,
+    /// пользователь мог включить другой выпуск.
+    var onFinished: ((URL) -> Void)?
     private var playerObservation: NSKeyValueObservation?
     private var itemObservations: [NSKeyValueObservation] = []
     private var notificationTokens: [NSObjectProtocol] = []   // живут ровно столько, сколько текущий AVPlayerItem
@@ -179,8 +181,12 @@ final class AudioPlayer: ObservableObject {
     /// элемент на паузе уничтожается, и продолжать нечего.
     func resume() {
         guard let source, source.isFile else { return }
-        if player.currentItem == nil {
-            play(.file(source.url, startAt: timeline.position))
+        // Доигранный до конца элемент возобновить нельзя: AVPlayer не поднимет
+        // rate, timeControlStatus не сменится, и состояние застрянет в .playing.
+        // Такой выпуск начинаем заново.
+        let atEnd = timeline.duration > 0 && timeline.position >= timeline.duration - 0.5
+        if player.currentItem == nil || atEnd {
+            play(.file(source.url, startAt: atEnd ? 0 : timeline.position))
             return
         }
         state = .playing
@@ -298,12 +304,14 @@ final class AudioPlayer: ObservableObject {
         // и меньше отстаёт. Файлу выгоднее буфер по умолчанию.
         if !source.isFile { item.preferredForwardBufferDuration = 4 }
 
-        observeItem(item)
-        player.replaceCurrentItem(with: item)
-
+        // Наблюдатели ставим до подмены элемента: иначе .status успел бы стать
+        // readyToPlay между вызовами, и длительность с перемоткой на старте
+        // потерялись бы до следующего изменения статуса.
+        observeItem(item, source: source)
         if case .file(_, let startAt) = source {
             observePlaybackTime(of: item, startAt: startAt)
         }
+        player.replaceCurrentItem(with: item)
         // Новый поток всегда начинается с тишины и поднимается сам, когда пойдёт звук.
         // Без этого первые кадры буфера врубались на полной громкости.
         fadeGain = 0
@@ -311,9 +319,7 @@ final class AudioPlayer: ObservableObject {
         player.play()
 
         state = .connecting
-        // Сторожевой таймер лечит зависший эфир. У файла он только мешает:
-        // законная пауза на буферизацию или перемотку выглядела бы как зависание.
-        if !source.isFile { armStallWatchdog() }
+        armStallWatchdog()
     }
 
     /// Следит за позицией и длительностью выпуска.
@@ -358,7 +364,7 @@ final class AudioPlayer: ObservableObject {
         }
     }
 
-    private func observeItem(_ item: AVPlayerItem) {
+    private func observeItem(_ item: AVPlayerItem, source: PlaybackSource) {
         itemObservations.append(
             item.observe(\.status, options: [.new]) { [weak self] item, _ in
                 let failed = item.status == .failed
@@ -389,11 +395,14 @@ final class AudioPlayer: ObservableObject {
             ) { [weak self] _ in
                 Task { @MainActor in
                     guard let self else { return }
-                    if self.isFileMode {
+                    // Ветвимся по источнику именно этого элемента: пока задача
+                    // ждала главный поток, пользователь мог переключиться,
+                    // и обрыв эфира зачёлся бы как доигранный выпуск.
+                    if source.isFile {
                         // Выпуск доиграл до конца — это норма, а не обрыв.
                         self.timeline.update(position: self.timeline.duration)
                         self.state = .paused
-                        self.onFinished?()
+                        self.onFinished?(source.url)
                     } else {
                         // Живой эфир «закончиться» не должен — значит, соединение оборвалось.
                         self.scheduleReconnect(reason: L10n.string("Соединение закрылось"))
@@ -440,6 +449,10 @@ final class AudioPlayer: ObservableObject {
     /// Если поток «висит» дольше 15 секунд — переподключаемся.
     private func armStallWatchdog() {
         stallWatchdog?.cancel()
+        // У файла сторож только мешает: буферизация и перемотка законно
+        // останавливают воспроизведение и выглядели бы как зависший поток.
+        // Проверка здесь, а не на трёх точках вызова — их легко забыть.
+        guard !isFileMode else { return }
         stallWatchdog = Task { [weak self] in
             try? await Task.sleep(for: .seconds(15))
             guard !Task.isCancelled, let self else { return }

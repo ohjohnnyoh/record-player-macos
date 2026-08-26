@@ -187,6 +187,7 @@ struct SidebarView: View {
                 Section("Жанры") {
                     Button {
                         state.closeStation()
+                        state.closePodcast()
                         state.selectedGenre = nil
                         if state.section != .all, state.section != .favorites { state.section = .all }
                     } label: {
@@ -197,6 +198,7 @@ struct SidebarView: View {
                     ForEach(state.genres, id: \.self) { genre in
                         Button {
                             state.closeStation()
+                            state.closePodcast()
                             state.selectedGenre = (state.selectedGenre == genre) ? nil : genre
                             if state.section != .all, state.section != .favorites { state.section = .all }
                         } label: {

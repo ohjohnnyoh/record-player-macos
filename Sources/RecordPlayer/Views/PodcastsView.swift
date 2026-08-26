@@ -24,7 +24,7 @@ struct PodcastsView: View {
                     icon: "mic",
                     title: L10n.string("Подкастов пока нет"),
                     subtitle: L10n.string("Сервер не вернул ни одного подкаста."),
-                    action: nil
+                    action: (L10n.string("Обновить"), { Task { await state.loadPodcasts(force: true) } })
                 )
             } else {
                 ScrollView {
@@ -42,6 +42,26 @@ struct PodcastsView: View {
                     .padding(.bottom, PlayerBar.reservedHeight)
                 }
                 .scrollIndicators(.automatic)
+                .safeAreaInset(edge: .top) {
+                    HStack {
+                        Text(L10n.podcastCount(state.podcasts.count))
+                            .font(.system(size: 11))
+                            .foregroundStyle(Theme.tertiaryText)
+                        Spacer()
+                        if state.isLoadingPodcasts {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Button("Обновить") {
+                                Task { await state.loadPodcasts(force: true) }
+                            }
+                            .buttonStyle(.borderless)
+                            .font(.system(size: 11))
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.bar)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -85,8 +105,14 @@ struct PodcastCard: View, Equatable {
 
     private static let coverRadius: CGFloat = 14
 
+    /// Сравниваем всё, что рисуется: по одному идентификатору обновлённый
+    /// каталог не перерисовал бы ни снятую метку NEW, ни новую обложку.
     static func == (lhs: PodcastCard, rhs: PodcastCard) -> Bool {
-        lhs.podcast.id == rhs.podcast.id && lhs.accent == rhs.accent
+        lhs.podcast.id == rhs.podcast.id
+            && lhs.podcast.title == rhs.podcast.title
+            && lhs.podcast.isFresh == rhs.podcast.isFresh
+            && lhs.podcast.coverURL == rhs.podcast.coverURL
+            && lhs.accent == rhs.accent
     }
 
     var body: some View {

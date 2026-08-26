@@ -7,7 +7,10 @@ import SwiftUI
 /// в одном месте важнее, чем кажется — иначе две сетки со временем разъедутся
 /// в мелочах, которые никто не заметит до жалобы.
 struct CardInteraction: ViewModifier {
-    @Environment(\.isFocused) private var isFocused
+    /// Именно `@FocusState`, а не `@Environment(\.isFocused)`: окружение
+    /// модификатора — это окружение родителя, куда фокус вложенного
+    /// `focusable` не попадает, и кольцо не нарисовалось бы никогда.
+    @FocusState private var isFocused: Bool
 
     @Binding var hovered: Bool
     let reduceMotion: Bool
@@ -22,6 +25,7 @@ struct CardInteraction: ViewModifier {
             .contentShape(Rectangle())
             .onTapGesture(perform: action)
             .focusable(interactions: .activate)
+            .focused($isFocused)
             .focusEffectDisabled()
             .onKeyPress(.return) {
                 action()

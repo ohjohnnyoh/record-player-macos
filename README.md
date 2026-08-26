@@ -4,19 +4,19 @@
 
 An unofficial native Radio Record player for macOS.
 
-[Скачать Record 1.8](https://github.com/ohjohnnyoh/record-player-macos/releases/latest) · [English](#english) · [Все скриншоты](docs/screenshots)
+[Скачать Record 2.0](https://github.com/ohjohnnyoh/record-player-macos/releases/latest) · [English](#english) · [Все скриншоты](docs/screenshots)
 
 ![Главное окно Record](docs/screenshots/01-all-stations.png)
 
 ## Русский
 
-Record позволяет слушать все станции Radio Record без браузера. Это обычное приложение для macOS: с отдельным мини-плеером, управлением из строки меню, медиаклавишами, историей треков и локальной статистикой прослушивания.
+Record позволяет слушать все станции Radio Record без браузера. Это обычное приложение для macOS: с отдельным мини-плеером, управлением из строки меню, медиаклавишами, чартами, подкастами, историей треков и локальной статистикой прослушивания.
 
 Интерфейс работает на русском и английском. Язык выбирается автоматически по настройкам macOS.
 
 ### Скачать и установить
 
-1. Скачайте [`Record-1.8.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.8/Record-1.8.dmg).
+1. Скачайте [`Record-2.0.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v2.0/Record-2.0.dmg).
 2. Откройте образ и перетащите Record в папку «Программы».
 3. При первом запуске нажмите на приложение правой кнопкой мыши и выберите **Открыть**.
 4. Подтвердите запуск в появившемся окне.
@@ -39,6 +39,8 @@ xattr -dr com.apple.quarantine /Applications/Record.app
 - **Мини-плеер:** отдельное квадратное окно с обложкой, громкостью и управлением воспроизведением.
 - **Строка меню:** текущий трек, избранные станции и основные кнопки доступны без открытия главного окна.
 - **Полный режим станции:** нажмите обложку в нижнем плеере, чтобы открыть крупную обложку, центрированное управление станцией и историю эфира за последние сутки. Длинные названия треков показываются бегущей строкой.
+- **Чарты:** Суперчарт, Клаб чарт и Новинки. У трека есть тридцатисекундный фрагмент, переход в Apple Music и копирование названия.
+- **Подкасты:** десять шоу Radio Record. Выпуски проигрываются целиком — с перемоткой, продолжением с места остановки и отметкой «прослушано», которая переживает перезапуск.
 - **История и статистика:** данные хранятся только на этом Mac.
 - **Apple Music:** трек можно открыть в Apple Music или скопировать его название.
 - **Системное управление:** работают медиаклавиши, панель «Сейчас исполняется» и пространственное аудио AirPods.
@@ -100,13 +102,13 @@ xattr -dr com.apple.quarantine /Applications/Record.app
 
 ## English
 
-Record lets you listen to every Radio Record station without keeping a browser open. It is a native macOS app with a separate mini player, menu bar controls, media keys, track history, and local listening statistics.
+Record lets you listen to every Radio Record station without keeping a browser open. It is a native macOS app with a separate mini player, menu bar controls, media keys, charts, podcasts, track history, and local listening statistics.
 
 The interface is available in Russian and English. The app follows the language selected in macOS settings.
 
 ### Download and install
 
-1. Download [`Record-1.8.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.8/Record-1.8.dmg).
+1. Download [`Record-2.0.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v2.0/Record-2.0.dmg).
 2. Open the disk image and drag Record to Applications.
 3. On first launch, right-click the app and choose **Open**.
 4. Confirm the launch in the macOS dialog.
@@ -129,6 +131,8 @@ Record requires macOS 14 or later. It uses native Liquid Glass on macOS 26 and A
 - **Mini player:** a separate square window with artwork, volume, and playback controls.
 - **Menu bar player:** see the current track, favorite stations, and essential controls without opening the main window.
 - **Full station view:** click the artwork in the bottom player to open large current-track artwork, centered station controls, and the last 24 hours of broadcast history. Long track names use a smooth marquee without overlapping the history column.
+- **Charts:** Superchart, Club Chart, and New Releases. Every track offers a 30-second preview, an Apple Music link, and title copying.
+- **Podcasts:** ten Radio Record shows. Episodes play in full, with scrubbing, resume from where you stopped, and a played mark that survives a restart.
 - **History and statistics:** listening data stays on your Mac.
 - **Apple Music:** open a track in Apple Music or copy its title.
 - **System controls:** media keys, Now Playing, and AirPods spatial audio are supported.
