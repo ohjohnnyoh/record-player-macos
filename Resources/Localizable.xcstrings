@@ -11,6 +11,16 @@
         }
       }
     },
+    "%@ из %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ of %@"
+          }
+        }
+      }
+    },
     "%@ мин": {
       "localizations": {
         "en": {
@@ -546,6 +556,16 @@
         }
       }
     },
+    "Вперёд на 15 секунд": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forward 15 Seconds"
+          }
+        }
+      }
+    },
     "Все жанры": {
       "localizations": {
         "en": {
@@ -686,6 +706,16 @@
         }
       }
     },
+    "Двойное нажатие включает выпуск": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-tap to play the episode"
+          }
+        }
+      }
+    },
     "Двойное нажатие включает станцию": {
       "localizations": {
         "en": {
@@ -722,6 +752,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Double-click to pause the stream"
+          }
+        }
+      }
+    },
+    "Длительность неизвестна": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration unknown"
           }
         }
       }
@@ -1056,6 +1096,16 @@
         }
       }
     },
+    "Назад на 15 секунд": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back 15 Seconds"
+          }
+        }
+      }
+    },
     "Напомнить завтра": {
       "localizations": {
         "en": {
@@ -1292,6 +1342,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Orange"
+          }
+        }
+      }
+    },
+    "Остановились на %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopped at %@"
           }
         }
       }
@@ -1616,6 +1676,16 @@
         }
       }
     },
+    "Позиция в выпуске": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position in the episode"
+          }
+        }
+      }
+    },
     "Поиск": {
       "localizations": {
         "en": {
@@ -1806,12 +1876,42 @@
         }
       }
     },
+    "Продолжить": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume"
+          }
+        }
+      }
+    },
+    "Продолжить с %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume from %@"
+          }
+        }
+      }
+    },
     "Пропустить эту версию": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Skip This Version"
+          }
+        }
+      }
+    },
+    "Прослушано": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Played"
           }
         }
       }
@@ -1986,6 +2086,16 @@
         }
       }
     },
+    "Слушать выпуск": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play Episode"
+          }
+        }
+      }
+    },
     "Соединение закрылось": {
       "localizations": {
         "en": {
@@ -2132,6 +2242,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Remove from Favorites"
+          }
+        }
+      }
+    },
+    "Управляет воспроизведением выпуска": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controls episode playback"
           }
         }
       }

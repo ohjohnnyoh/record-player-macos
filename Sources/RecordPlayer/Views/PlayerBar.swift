@@ -20,6 +20,12 @@ struct PlayerBar: View {
     private var station: Station? { state.currentStation }
     private var track: Track? { state.currentTrack }
 
+    /// Что показать первой строкой: выпуск, трек эфира или приглашение выбрать.
+    private var primaryTitle: String {
+        if let episode = state.currentEpisode { return episode.title }
+        return track?.displayTitle ?? station?.title ?? L10n.string("Выберите станцию")
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             transportControls
@@ -27,22 +33,34 @@ struct PlayerBar: View {
             artwork
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(track?.displayTitle ?? station?.title ?? L10n.string("Выберите станцию"))
+                Text(primaryTitle)
                     .font(.system(size: 12.5, weight: .semibold))
                     .lineLimit(1)
 
-                HStack(spacing: 5) {
-                    if let station {
-                        Text(station.title)
-                            .foregroundStyle(accent)
+                if let episode = state.currentEpisode {
+                    // У выпуска вместо строки состояния — полоса перемотки:
+                    // знать, сколько осталось, полезнее, чем слово «пауза».
+                    PlaybackScrubber(
+                        timeline: state.player.timeline,
+                        accent: accent,
+                        compact: true,
+                        onSeek: { state.seekInEpisode(to: $0) }
+                    )
+                    .id(episode.id)
+                } else {
+                    HStack(spacing: 5) {
+                        if let station {
+                            Text(station.title)
+                                .foregroundStyle(accent)
+                        }
+                        statusLabel
                     }
-                    statusLabel
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(Theme.secondaryText)
+                    .lineLimit(1)
                 }
-                .font(.system(size: 10.5))
-                .foregroundStyle(Theme.secondaryText)
-                .lineLimit(1)
             }
-            .frame(minWidth: 120, alignment: .leading)
+            .frame(minWidth: 150, alignment: .leading)
 
             Spacer(minLength: 12)
 
@@ -70,14 +88,23 @@ struct PlayerBar: View {
 
     private var artwork: some View {
         Button {
-            guard let station else { return }
-            state.showStation(station)
+            if let podcast = state.currentEpisodePodcast, state.currentEpisode != nil {
+                state.showPodcast(podcast)
+            } else if let station {
+                state.showStation(station)
+            }
         } label: {
             ZStack {
                 RoundedRectangle(cornerRadius: 7, style: .continuous)
                     .fill(Color.black.opacity(0.35))
 
-                if let track, track.artworkURL != nil {
+                if let episode = state.currentEpisode {
+                    CachedImage(url: episode.smallArtworkURL, contentMode: .fill, maxPixel: 96) {
+                        Image(systemName: "mic").foregroundStyle(Theme.tertiaryText)
+                    }
+                    .frame(width: 38, height: 38)
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                } else if let track, track.artworkURL != nil {
                     // Размер обязателен до обрезки: при .fill картинка растягивается
                     // больше предложенного, и без рамки clipShape режет уже по её
                     // раздутым границам — неквадратные обложки наезжали на текст.
@@ -109,11 +136,15 @@ struct PlayerBar: View {
             .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
         }
         .buttonStyle(.plain)
-        .disabled(station == nil)
+        .disabled(station == nil && state.currentEpisode == nil)
         .onHover { artworkHovered = $0 }
-        .accessibilityLabel("Открыть станцию")
-        .accessibilityValue(track?.displayTitle ?? station?.title ?? L10n.string("Ничего не играет"))
-        .help("Открыть станцию")
+        .accessibilityLabel(L10n.string(
+            state.currentEpisode != nil ? "Открыть подкаст" : "Открыть станцию"
+        ))
+        .accessibilityValue(primaryTitle)
+        .help(L10n.string(
+            state.currentEpisode != nil ? "Открыть подкаст" : "Открыть станцию"
+        ))
         .animation(reduceMotion ? nil : .easeOut(duration: 0.14), value: artworkHovered)
     }
 
@@ -147,10 +178,19 @@ struct PlayerBar: View {
 
     private var transportControls: some View {
         HStack(spacing: 13) {
-            PlayerTransportButton(
-                symbol: "backward.fill",
-                help: L10n.string("Предыдущая станция (⌘←)")
-            ) { state.step(by: -1) }
+            if let episode = state.currentEpisode {
+                PlayerTransportButton(
+                    symbol: "gobackward.15",
+                    help: L10n.string("Назад на 15 секунд")
+                ) { state.skipInEpisode(by: -15) }
+                    .accessibilityLabel(L10n.string("Назад на 15 секунд"))
+                    .id("back-\(episode.id)")
+            } else {
+                PlayerTransportButton(
+                    symbol: "backward.fill",
+                    help: L10n.string("Предыдущая станция (⌘←)")
+                ) { state.step(by: -1) }
+            }
 
             Button {
                 state.togglePlayPause()
@@ -169,17 +209,34 @@ struct PlayerBar: View {
             }
             .buttonStyle(PlayerMainButtonStyle())
             .accessibilityLabel(L10n.string(state.player.state.isActive ? "Пауза" : "Играть"))
-            .accessibilityHint("Управляет воспроизведением текущей станции")
+            .accessibilityHint(L10n.string(
+                state.currentEpisode != nil
+                    ? "Управляет воспроизведением выпуска"
+                    : "Управляет воспроизведением текущей станции"
+            ))
             .help(L10n.string(state.player.state.isActive ? "Пауза (пробел)" : "Играть (пробел)"))
 
-            PlayerTransportButton(
-                symbol: "forward.fill",
-                help: L10n.string("Следующая станция (⌘→)")
-            ) { state.step(by: 1) }
+            if let episode = state.currentEpisode {
+                PlayerTransportButton(
+                    symbol: "goforward.15",
+                    help: L10n.string("Вперёд на 15 секунд")
+                ) { state.skipInEpisode(by: 15) }
+                    .accessibilityLabel(L10n.string("Вперёд на 15 секунд"))
+                    .id("fwd-\(episode.id)")
+            } else {
+                PlayerTransportButton(
+                    symbol: "forward.fill",
+                    help: L10n.string("Следующая станция (⌘→)")
+                ) { state.step(by: 1) }
+            }
         }
         .font(.system(size: 12))
-        .foregroundStyle(state.currentStation == nil ? Theme.tertiaryText : Color.primary)
-        .disabled(state.stations.isEmpty)
+        .foregroundStyle(
+            state.currentStation == nil && state.currentEpisode == nil
+                ? Theme.tertiaryText
+                : Color.primary
+        )
+        .disabled(state.stations.isEmpty && state.currentEpisode == nil)
     }
 
     private var extrasMenu: some View {

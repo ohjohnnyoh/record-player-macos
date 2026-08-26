@@ -64,6 +64,13 @@ struct RecordPlayerApp: App {
                     .keyboardShortcut(.rightArrow, modifiers: .command)
                 Button("Предыдущая станция") { state.step(by: -1) }
                     .keyboardShortcut(.leftArrow, modifiers: .command)
+                Button("Назад на 15 секунд") { state.skipInEpisode(by: -15) }
+                    .keyboardShortcut("[", modifiers: .command)
+                    .disabled(state.currentEpisode == nil)
+                Button("Вперёд на 15 секунд") { state.skipInEpisode(by: 15) }
+                    .keyboardShortcut("]", modifiers: .command)
+                    .disabled(state.currentEpisode == nil)
+
                 Button("Случайная станция") { state.playRandom() }
                     .keyboardShortcut("r", modifiers: [.command, .shift])
 

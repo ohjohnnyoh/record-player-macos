@@ -131,6 +131,12 @@ final class AppState: ObservableObject {
     /// станции жёстко завязан на тип `Station`, и смешивать их в одном поле
     /// значило бы размыть оба.
     @Published var openPodcast: Podcast?
+
+    /// Выпуск, который сейчас играет. Одновременно с ним `currentStation`
+    /// всегда пуст: звучит либо эфир, либо подкаст.
+    @Published private(set) var currentEpisode: PodcastEpisode?
+    @Published private(set) var currentEpisodePodcast: Podcast?
+    @Published private(set) var episodeProgress: [Int: EpisodeProgress] = [:]
     @Published private(set) var episodes: [Int: [PodcastEpisode]] = [:]
     @Published private(set) var loadingEpisodes: Set<Int> = []
     @Published private(set) var episodesError: [Int: String] = [:]
@@ -176,6 +182,7 @@ final class AppState: ObservableObject {
         accent = Defaults.accent
         history = Defaults.history
         stationStats = StatsStore.load()
+        episodeProgress = ProgressStore.load()
         player.volume = Defaults.volume
         player.isMuted = Defaults.isMuted
 
@@ -228,11 +235,27 @@ final class AppState: ObservableObject {
                 guard let self else { return }
                 self.updateListeningClock(for: state)
                 self.objectWillChange.send()
-                RemoteControl.shared.update(
-                    station: self.currentStation,
-                    track: self.currentStation.flatMap { self.nowPlaying[$0.id] },
-                    isPlaying: state == .playing
-                )
+                if self.currentEpisode != nil {
+                    self.updateRemoteForEpisode(isPlaying: state == .playing)
+                } else {
+                    RemoteControl.shared.update(
+                        station: self.currentStation,
+                        track: self.currentStation.flatMap { self.nowPlaying[$0.id] },
+                        isPlaying: state == .playing
+                    )
+                }
+            }
+            .store(in: &cancellables)
+
+        player.onFinished = { [weak self] in self?.handleEpisodeFinished() }
+
+        // Позицию сохраняем не на каждый тик, а раз в несколько секунд:
+        // иначе файл прогресса переписывался бы дважды в секунду.
+        player.timeline.$position
+            .throttle(for: .seconds(8), scheduler: RunLoop.main, latest: true)
+            .sink { [weak self] _ in
+                guard let self, self.player.state == .playing else { return }
+                self.saveEpisodeProgress()
             }
             .store(in: &cancellables)
 
@@ -244,7 +267,10 @@ final class AppState: ObservableObject {
             forName: NSApplication.willTerminateNotification,
             object: nil, queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.flushListening() }
+            MainActor.assumeIsolated {
+                self?.flushListening()
+                self?.saveEpisodeProgress()
+            }
         }
     }
 
@@ -387,6 +413,13 @@ final class AppState: ObservableObject {
     func startPlayback(_ station: Station) {
         guard let url = station.streamURL(for: quality) else { return }
         let shouldFollowPlayback = playlistStation != nil && playlistStation?.id != station.id
+
+        // Эфир глушит и фрагмент чарта, и выпуск: звучать должно что-то одно.
+        preview.stop()
+        saveEpisodeProgress()
+        currentEpisode = nil
+        currentEpisodePodcast = nil
+
         flushListening()
         countPlay(of: station)
         currentStation = station
@@ -404,6 +437,18 @@ final class AppState: ObservableObject {
     }
 
     func togglePlayPause() {
+        // Кнопка одна, а играть может и эфир, и выпуск — разводим по тому,
+        // что звучит на самом деле.
+        if currentEpisode != nil {
+            if player.state.isActive {
+                player.pause()
+                saveEpisodeProgress()
+            } else {
+                player.resume()
+            }
+            return
+        }
+
         guard let currentStation else {
             if let first = visibleStations.first { startPlayback(first) }
             return
@@ -536,6 +581,101 @@ final class AppState: ObservableObject {
             if charts[kind] == nil { chartErrors[kind] = error.localizedDescription }
         }
         loadingCharts.remove(kind)
+    }
+
+    // MARK: - Выпуски подкастов
+
+    var isPlayingEpisode: Bool { currentEpisode != nil }
+
+    func isPlaying(episode: PodcastEpisode) -> Bool {
+        currentEpisode?.id == episode.id && player.state == .playing
+    }
+
+    func isCurrent(episode: PodcastEpisode) -> Bool {
+        currentEpisode?.id == episode.id
+    }
+
+    func progress(for episode: PodcastEpisode) -> EpisodeProgress? {
+        episodeProgress[episode.id]
+    }
+
+    /// Включает выпуск. По умолчанию продолжает с того места, где остановились.
+    func playEpisode(_ episode: PodcastEpisode, in podcast: Podcast, restart: Bool = false) {
+        guard let url = episode.audioURL else { return }
+
+        // Уже играет этот же выпуск — значит, нажатие означает паузу.
+        if currentEpisode?.id == episode.id, player.state.isActive, !restart {
+            player.pause()
+            saveEpisodeProgress()
+            return
+        }
+
+        preview.stop()
+        saveEpisodeProgress()
+
+        currentStation = nil
+        currentEpisode = episode
+        currentEpisodePodcast = podcast
+
+        let saved = episodeProgress[episode.id]
+        let startAt = (restart || saved?.isFinished == true) ? 0 : (saved?.position ?? 0)
+        player.play(.file(url, startAt: startAt))
+        updateRemoteForEpisode(isPlaying: true)
+    }
+
+    func skipInEpisode(by seconds: TimeInterval) {
+        guard currentEpisode != nil else { return }
+        player.skip(by: seconds)
+        updateRemoteForEpisode(isPlaying: player.state == .playing)
+    }
+
+    func seekInEpisode(to seconds: TimeInterval) {
+        guard currentEpisode != nil else { return }
+        player.seek(to: seconds)
+        updateRemoteForEpisode(isPlaying: player.state == .playing)
+    }
+
+    /// Запоминает, где остановились: на паузе, при смене выпуска, на выходе
+    /// и раз в несколько секунд во время прослушивания.
+    func saveEpisodeProgress() {
+        guard let episode = currentEpisode else { return }
+        let position = player.timeline.position
+        let duration = player.timeline.duration
+        guard duration > 0 || position > 0 else { return }
+
+        episodeProgress[episode.id] = EpisodeProgress(
+            episodeID: episode.id,
+            position: position,
+            duration: duration,
+            updated: Date()
+        )
+        ProgressStore.save(episodeProgress)
+    }
+
+    private func handleEpisodeFinished() {
+        guard let episode = currentEpisode else { return }
+        let duration = player.timeline.duration
+        episodeProgress[episode.id] = EpisodeProgress(
+            episodeID: episode.id,
+            position: duration,
+            duration: duration,
+            updated: Date()
+        )
+        ProgressStore.save(episodeProgress)
+        updateRemoteForEpisode(isPlaying: false)
+        // Автоперехода к следующему выпуску намеренно нет: внезапно начавшийся
+        // следующий час разговоров — не то, чего ждут после конца выпуска.
+    }
+
+    private func updateRemoteForEpisode(isPlaying: Bool) {
+        guard let episode = currentEpisode else { return }
+        RemoteControl.shared.update(
+            episode: episode,
+            podcast: currentEpisodePodcast,
+            isPlaying: isPlaying,
+            position: player.timeline.position,
+            duration: player.timeline.duration
+        )
     }
 
     // MARK: - Предпрослушивание из чартов
@@ -735,6 +875,8 @@ final class AppState: ObservableObject {
         remote.onPause = { [weak self] in self?.player.pause() }
         remote.onToggle = { [weak self] in self?.togglePlayPause() }
         remote.onNextStation = { [weak self] in self?.step(by: 1) }
+        remote.onSkip = { [weak self] delta in self?.skipInEpisode(by: delta) }
+        remote.onSeek = { [weak self] position in self?.seekInEpisode(to: position) }
         remote.onPreviousStation = { [weak self] in self?.step(by: -1) }
         remote.activate()
     }

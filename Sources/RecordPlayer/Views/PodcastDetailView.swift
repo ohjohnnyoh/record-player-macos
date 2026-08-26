@@ -95,6 +95,16 @@ struct PodcastDetailView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
+            primaryButton
+
+            if playsFromThisPodcast, state.player.timeline.duration > 0 {
+                PlaybackScrubber(
+                    timeline: state.player.timeline,
+                    accent: accent,
+                    onSeek: { state.seekInEpisode(to: $0) }
+                )
+            }
+
             if let url = podcast.shareURL {
                 Button("Открыть на сайте") { NSWorkspace.shared.open(url) }
                     .buttonStyle(.borderless)
@@ -105,6 +115,58 @@ struct PodcastDetailView: View {
         }
         .frame(width: width, alignment: .leading)
         .padding(.top, 12)
+    }
+
+    /// Крупная кнопка: продолжает начатый выпуск или включает свежий.
+    @ViewBuilder
+    private var primaryButton: some View {
+        if let episode = playTarget {
+            let isCurrent = state.isCurrent(episode: episode)
+            let isPlaying = state.isPlaying(episode: episode)
+            let saved = state.progress(for: episode)
+
+            Button {
+                state.playEpisode(episode, in: podcast)
+            } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 11, weight: .bold))
+                    Text(buttonTitle(isCurrent: isCurrent, isPlaying: isPlaying, saved: saved))
+                        .font(.system(size: 12, weight: .semibold))
+                        .lineLimit(1)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 7)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(accent)
+        }
+    }
+
+    private func buttonTitle(isCurrent: Bool, isPlaying: Bool, saved: EpisodeProgress?) -> String {
+        if isPlaying { return L10n.string("Пауза") }
+        if isCurrent { return L10n.string("Продолжить") }
+        if let saved, saved.isResumable {
+            return L10n.format("Продолжить с %@", saved.positionText)
+        }
+        return L10n.string("Слушать выпуск")
+    }
+
+    /// Что включит крупная кнопка: играющий выпуск, начатый или самый свежий.
+    private var playTarget: PodcastEpisode? {
+        if let current = state.currentEpisode, episodes.contains(where: { $0.id == current.id }) {
+            return current
+        }
+        if let started = episodes.first(where: { state.progress(for: $0)?.isResumable == true }) {
+            return started
+        }
+        return episodes.first
+    }
+
+    /// Играет ли сейчас выпуск именно этого подкаста.
+    private var playsFromThisPodcast: Bool {
+        guard let current = state.currentEpisode else { return false }
+        return episodes.contains { $0.id == current.id }
     }
 
     // MARK: - Правая колонка
@@ -197,7 +259,15 @@ struct PodcastDetailView: View {
                 ForEach(grouped, id: \.day) { group in
                     Section {
                         ForEach(group.episodes) { episode in
-                            EpisodeRow(episode: episode).equatable()
+                            EpisodeRow(
+                                episode: episode,
+                                accent: accent,
+                                isCurrent: state.isCurrent(episode: episode),
+                                isPlaying: state.isPlaying(episode: episode),
+                                progress: state.progress(for: episode),
+                                onPlay: { state.playEpisode(episode, in: podcast) }
+                            )
+                            .equatable()
                         }
                     } header: {
                         HStack {
@@ -271,6 +341,11 @@ struct PodcastDetailView: View {
 
 private struct EpisodeRow: View, Equatable {
     let episode: PodcastEpisode
+    let accent: Color
+    let isCurrent: Bool
+    let isPlaying: Bool
+    let progress: EpisodeProgress?
+    let onPlay: () -> Void
 
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @State private var hovered = false
@@ -278,20 +353,21 @@ private struct EpisodeRow: View, Equatable {
 
     static func == (lhs: EpisodeRow, rhs: EpisodeRow) -> Bool {
         lhs.episode.id == rhs.episode.id
+            && lhs.isCurrent == rhs.isCurrent
+            && lhs.isPlaying == rhs.isPlaying
+            && lhs.progress == rhs.progress
+            && lhs.accent == rhs.accent
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 10) {
-                CachedImage(url: episode.smallArtworkURL, contentMode: .fill, maxPixel: 96) {
-                    RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.3))
-                }
-                .frame(width: 38, height: 38)
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                artwork
 
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(episode.title)
-                        .font(.system(size: 12.5, weight: .medium))
+                        .font(.system(size: 12.5, weight: isCurrent ? .semibold : .medium))
+                        .foregroundStyle(isCurrent ? accent : Color.primary)
                         .lineLimit(1)
 
                     HStack(spacing: 6) {
@@ -302,9 +378,22 @@ private struct EpisodeRow: View, Equatable {
                             Text("·")
                             Text(date.formatted(date: .omitted, time: .shortened))
                         }
+                        if let statusText {
+                            Text("·")
+                            Text(statusText).foregroundStyle(accent.opacity(0.9))
+                        }
                     }
                     .font(.system(size: 10.5))
                     .foregroundStyle(Theme.tertiaryText)
+                    .lineLimit(1)
+
+                    if let fraction = listenedFraction {
+                        ProgressView(value: fraction)
+                            .progressViewStyle(.linear)
+                            .tint(accent.opacity(0.75))
+                            .frame(height: 2)
+                            .padding(.top, 1)
+                    }
                 }
 
                 Spacer(minLength: 8)
@@ -339,27 +428,81 @@ private struct EpisodeRow: View, Equatable {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background {
-            if hovered {
+            if hovered || isCurrent {
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(.white.opacity(0.07))
+                    .fill(.white.opacity(isCurrent ? 0.10 : 0.07))
             }
         }
         .contentShape(Rectangle())
         .onHover { hovered = $0 }
-        .contextMenu {
-            Button("Скопировать название") {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(episode.title, forType: .string)
+        .onTapGesture(perform: onPlay)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(episode.title)
+        .accessibilityValue(accessibilityValue)
+        .accessibilityHint(L10n.string("Двойное нажатие включает выпуск"))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(.default, onPlay)
+        .contextMenu { menu }
+    }
+
+    /// Обложка выпуска — она же кнопка запуска.
+    private var artwork: some View {
+        ZStack {
+            CachedImage(url: episode.smallArtworkURL, contentMode: .fill, maxPixel: 96) {
+                RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.3))
             }
-            if !episode.playlistLines.isEmpty {
-                Button("Скопировать состав") {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(episode.playlistLines.joined(separator: "\n"), forType: .string)
+            .frame(width: 38, height: 38)
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+            if hovered || isCurrent {
+                ZStack {
+                    Color.black.opacity(0.5)
+                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white)
                 }
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
             }
-            if let url = episode.shareURL {
-                Button("Открыть на сайте") { NSWorkspace.shared.open(url) }
+        }
+        .frame(width: 38, height: 38)
+    }
+
+    /// Доля прослушанного — тонкая полоска под названием.
+    private var listenedFraction: Double? {
+        guard let progress, progress.duration > 0, !progress.isFinished else { return nil }
+        guard progress.position > 30 else { return nil }
+        return min(1, progress.position / progress.duration)
+    }
+
+    private var statusText: String? {
+        guard let progress else { return nil }
+        if progress.isFinished { return L10n.string("Прослушано") }
+        if progress.isResumable { return L10n.format("Остановились на %@", progress.positionText) }
+        return nil
+    }
+
+    private var accessibilityValue: String {
+        var parts: [String] = []
+        if let duration = episode.durationText { parts.append(duration) }
+        if let statusText { parts.append(statusText) }
+        return parts.joined(separator: ", ")
+    }
+
+    @ViewBuilder
+    private var menu: some View {
+        Button(L10n.string(isPlaying ? "Пауза" : "Слушать выпуск"), action: onPlay)
+        Button("Скопировать название") {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(episode.title, forType: .string)
+        }
+        if !episode.playlistLines.isEmpty {
+            Button("Скопировать состав") {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(episode.playlistLines.joined(separator: "\n"), forType: .string)
             }
+        }
+        if let url = episode.shareURL {
+            Button("Открыть на сайте") { NSWorkspace.shared.open(url) }
         }
     }
 }
