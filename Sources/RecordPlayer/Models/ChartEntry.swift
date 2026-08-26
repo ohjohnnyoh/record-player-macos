@@ -50,6 +50,10 @@ struct ChartEntry: Codable, Hashable, Identifiable {
     var previewURL: URL? { track?.listenURL }
 
     var appleMusicURL: URL? { track?.itunesUrl.flatMap(URL.init(string:)) }
+
+    /// Страница трека на сайте. Нужна как запасной вариант: ссылка на Apple
+    /// Music приходит не у всех позиций.
+    var siteURL: URL? { track?.shareUrl.flatMap(URL.init(string:)) }
 }
 
 /// Позиция вместе с её местом в чарте — место задаётся порядком в ответе.

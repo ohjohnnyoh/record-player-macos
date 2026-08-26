@@ -17,6 +17,8 @@ struct RootView: View {
             Group {
                 if let station = state.playlistStation {
                     StationDetailView(station: station)
+                } else if let podcast = state.openPodcast {
+                    PodcastDetailView(podcast: podcast)
                 } else {
                     switch state.section {
                     case .all, .favorites:
@@ -25,13 +27,15 @@ struct RootView: View {
                         HistoryView()
                     case .charts:
                         ChartsView()
+                    case .podcasts:
+                        PodcastsView()
                     }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             // Плеер не в раскладке, а поверх неё — карточки проезжают под пилюлей.
             .overlay(alignment: .bottom) {
-                if state.playlistStation == nil {
+                if state.playlistStation == nil, state.openPodcast == nil {
                     PlayerBar()
                 }
             }
@@ -165,6 +169,7 @@ struct SidebarView: View {
                 ForEach(SidebarSection.allCases) { item in
                     Button {
                         state.closeStation()
+                        state.closePodcast()
                         state.section = item
                     } label: {
                         sidebarRow(for: item)

@@ -127,7 +127,7 @@ struct StationCard: View, Equatable {
 
     var body: some View {
         cardContent
-            .modifier(StationCardInteraction(
+            .modifier(CardInteraction(
                 hovered: $isHovered,
                 reduceMotion: reduceMotion,
                 isCurrent: isCurrent,
@@ -135,7 +135,7 @@ struct StationCard: View, Equatable {
                 helpText: helpText,
                 action: onPlay
             ))
-            .modifier(StationCardAccessibility(
+            .modifier(CardAccessibility(
                 label: station.title,
                 value: accessibilityValue,
                 hint: L10n.string(
@@ -268,56 +268,4 @@ struct StationCard: View, Equatable {
     }
 }
 
-private struct StationCardInteraction: ViewModifier {
-    @Environment(\.isFocused) private var isFocused
 
-    @Binding var hovered: Bool
-    let reduceMotion: Bool
-    let isCurrent: Bool
-    let accent: Color
-    let helpText: String
-    let action: () -> Void
-
-    func body(content: Content) -> some View {
-        content
-            .contentShape(Rectangle())
-            .onTapGesture(perform: action)
-            .focusable(interactions: .activate)
-            .focusEffectDisabled()
-            .onKeyPress(.return) {
-                action()
-                return .handled
-            }
-            .overlay {
-                if isFocused {
-                    RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
-                        .strokeBorder(accent.opacity(0.88), lineWidth: 2)
-                        .padding(1)
-                        .allowsHitTesting(false)
-                }
-            }
-            .onHover { hovered = $0 }
-            .scaleEffect(hovered && !reduceMotion ? 1.012 : 1)
-            .offset(y: hovered && !reduceMotion ? -1 : 0)
-            .shadow(color: .black.opacity(hovered ? 0.22 : 0), radius: 10, y: 4)
-            .help(helpText)
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: hovered)
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: isCurrent)
-    }
-}
-
-private struct StationCardAccessibility: ViewModifier {
-    let label: String
-    let value: String
-    let hint: String
-    let action: () -> Void
-
-    func body(content: Content) -> some View {
-        content
-            .accessibilityLabel(label)
-            .accessibilityValue(value)
-            .accessibilityHint(hint)
-            .accessibilityAddTraits(.isButton)
-            .accessibilityAction { action() }
-    }
-}

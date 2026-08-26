@@ -56,7 +56,14 @@ struct ChartsView: View {
         ScrollView {
             LazyVStack(spacing: 2) {
                 ForEach(entries) { ranked in
-                    ChartRow(ranked: ranked, accent: accent).equatable()
+                    ChartRow(
+                        ranked: ranked,
+                        accent: accent,
+                        isPreviewing: state.preview.playingID != nil
+                            && state.preview.playingID == ranked.entry.track?.id,
+                        onTogglePreview: { state.togglePreview(ranked.entry) }
+                    )
+                    .equatable()
                 }
             }
             .padding(.horizontal, 12)
@@ -111,15 +118,22 @@ struct ChartsView: View {
 private struct ChartRow: View, Equatable {
     let ranked: RankedChartEntry
     let accent: Color
+    let isPreviewing: Bool
+    let onTogglePreview: () -> Void
 
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hovered = false
 
     static func == (lhs: ChartRow, rhs: ChartRow) -> Bool {
-        lhs.ranked.id == rhs.ranked.id && lhs.accent == rhs.accent
+        lhs.ranked.id == rhs.ranked.id
+            && lhs.accent == rhs.accent
+            && lhs.isPreviewing == rhs.isPreviewing
     }
 
     private var entry: ChartEntry { ranked.entry }
+    private var canPreview: Bool { entry.previewURL != nil }
+    private var showsActions: Bool { hovered || voiceOverEnabled || isPreviewing }
 
     var body: some View {
         HStack(spacing: 11) {
@@ -129,15 +143,12 @@ private struct ChartRow: View, Equatable {
                 .foregroundStyle(ranked.rank <= 3 ? accent : Theme.tertiaryText)
                 .frame(width: 26, alignment: .trailing)
 
-            CachedImage(url: entry.track?.smallArtworkURL, contentMode: .fill, maxPixel: 96) {
-                RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.3))
-            }
-            .frame(width: 38, height: 38)
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            artwork
 
             VStack(alignment: .leading, spacing: 1) {
                 Text((entry.track?.displaySong).nilIfEmpty ?? entry.displayTitle)
                     .font(.system(size: 12.5, weight: .medium))
+                    .foregroundStyle(isPreviewing ? accent : Color.primary)
                     .lineLimit(1)
                 if let artist = (entry.track?.displayArtist).nilIfEmpty {
                     Text(artist)
@@ -149,7 +160,68 @@ private struct ChartRow: View, Equatable {
 
             Spacer(minLength: 8)
 
-            if hovered || voiceOverEnabled, let url = entry.appleMusicURL {
+            if showsActions { actions }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background {
+            if hovered || isPreviewing {
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(.white.opacity(isPreviewing ? 0.10 : 0.07))
+            }
+        }
+        .contentShape(Rectangle())
+        .onHover { hovered = $0 }
+        .onTapGesture { if canPreview { onTogglePreview() } }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.14), value: isPreviewing)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(L10n.format("Место %@", String(ranked.rank)))
+        .accessibilityValue(entry.displayTitle)
+        .accessibilityHint(canPreview ? L10n.string("Двойное нажатие включает фрагмент") : "")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { if canPreview { onTogglePreview() } }
+        .contextMenu { menu }
+    }
+
+    /// Обложка сама по себе — кнопка запуска фрагмента: так понятнее,
+    /// что у строки вообще есть звук.
+    private var artwork: some View {
+        ZStack {
+            CachedImage(url: entry.track?.smallArtworkURL, contentMode: .fill, maxPixel: 96) {
+                RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.3))
+            }
+            .frame(width: 38, height: 38)
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+            if canPreview, hovered || isPreviewing {
+                ZStack {
+                    Color.black.opacity(0.5)
+                    Image(systemName: isPreviewing ? "stop.fill" : "play.fill")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            }
+        }
+        .frame(width: 38, height: 38)
+    }
+
+    private var actions: some View {
+        HStack(spacing: 6) {
+            if canPreview {
+                Button(action: onTogglePreview) {
+                    Image(systemName: isPreviewing ? "stop.circle" : "play.circle")
+                        .font(.system(size: 13))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(isPreviewing ? accent : Theme.secondaryText)
+                .help(L10n.string(isPreviewing ? "Остановить фрагмент" : "Фрагмент 30 секунд"))
+                .accessibilityLabel(L10n.string(isPreviewing ? "Остановить фрагмент" : "Фрагмент 30 секунд"))
+            }
+
+            // Ссылка на Apple Music приходит не всегда — тогда ведём на сайт,
+            // чтобы у строки в любом случае было куда нажать.
+            if let url = entry.appleMusicURL ?? entry.siteURL {
                 Button {
                     NSWorkspace.shared.open(url)
                 } label: {
@@ -158,31 +230,39 @@ private struct ChartRow: View, Equatable {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Theme.secondaryText)
-                .help(L10n.string("Открыть в Apple Music"))
-                .accessibilityLabel(L10n.string("Открыть в Apple Music"))
+                .help(L10n.string(entry.appleMusicURL != nil ? "Открыть в Apple Music" : "Открыть на сайте"))
+                .accessibilityLabel(L10n.string(entry.appleMusicURL != nil ? "Открыть в Apple Music" : "Открыть на сайте"))
             }
+
+            Button {
+                copyTitle()
+            } label: {
+                Image(systemName: "doc.on.doc")
+                    .font(.system(size: 11))
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Theme.secondaryText)
+            .help(L10n.string("Скопировать название"))
+            .accessibilityLabel(L10n.string("Скопировать название"))
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background {
-            if hovered {
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(.white.opacity(0.07))
-            }
+    }
+
+    @ViewBuilder
+    private var menu: some View {
+        if canPreview {
+            Button(L10n.string(isPreviewing ? "Остановить фрагмент" : "Фрагмент 30 секунд"), action: onTogglePreview)
         }
-        .contentShape(Rectangle())
-        .onHover { hovered = $0 }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(L10n.format("Место %@", String(ranked.rank)))
-        .accessibilityValue(entry.displayTitle)
-        .contextMenu {
-            Button("Скопировать название") {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(entry.displayTitle, forType: .string)
-            }
-            if let url = entry.appleMusicURL {
-                Button("Открыть в Apple Music") { NSWorkspace.shared.open(url) }
-            }
+        Button("Скопировать название", action: copyTitle)
+        if let url = entry.appleMusicURL {
+            Button("Открыть в Apple Music") { NSWorkspace.shared.open(url) }
         }
+        if let url = entry.siteURL {
+            Button("Открыть на сайте") { NSWorkspace.shared.open(url) }
+        }
+    }
+
+    private func copyTitle() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(entry.displayTitle, forType: .string)
     }
 }

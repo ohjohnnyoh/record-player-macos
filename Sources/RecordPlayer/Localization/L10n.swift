@@ -31,8 +31,28 @@ enum L10n {
         plural("%lld треков за последние сутки", count)
     }
 
+    static func episodeCount(_ count: Int) -> String {
+        plural("%lld выпусков", count)
+    }
+
     static func listeningSummary(stations: Int, duration: String) -> String {
         format("%@ · всего %@", stationCount(stations), duration)
+    }
+
+    /// Длительность словами: «41 мин», «1 ч 5 мин».
+    ///
+    /// Живёт здесь, а не в модели статистики станций: тем же форматом
+    /// пользуются выпуски подкастов, и им незачем зависеть от чужой сущности.
+    static func duration(seconds: Double) -> String {
+        let total = Int(seconds.rounded())
+        let hours = total / 3600
+        let minutes = (total % 3600) / 60
+        switch (hours, minutes) {
+        case (0, 0): return string("меньше минуты")
+        case (0, _): return format("%@ мин", String(minutes))
+        case (_, 0): return format("%@ ч", String(hours))
+        default: return format("%@ ч %@ мин", String(hours), String(minutes))
+        }
     }
 
     /// Формы множественного числа берутся из String Catalog, а не считаются в коде.

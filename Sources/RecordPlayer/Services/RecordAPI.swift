@@ -99,6 +99,36 @@ enum RecordAPI {
     /// странице `/chart/newest`.
     static let recordNewFeedID = 15762
 
+    // MARK: - Подкасты
+
+    /// Каталог подкастов. Меняется редко, поэтому кэшируется на диск —
+    /// раздел открывается и без сети.
+    static func fetchPodcasts() async throws -> [Podcast] {
+        let url = URL(string: "https://www.radiorecord.ru/api/podcasts/")!
+        let (data, response) = try await session.data(from: url)
+        try validate(response)
+        let decoded = try decoder.decode(PodcastsResponse.self, from: data)
+        DiskCache.write(data, to: "podcasts.json")
+        return decoded.result
+    }
+
+    /// Каталог подкастов из локального кэша.
+    static func cachedPodcasts() -> [Podcast]? {
+        guard let data = DiskCache.read("podcasts.json"),
+              let decoded = try? decoder.decode(PodcastsResponse.self, from: data)
+        else { return nil }
+        return decoded.result
+    }
+
+    /// Выпуски подкаста — до 250 записей, каждая с прямой ссылкой на MP3.
+    static func fetchEpisodes(podcastID: Int) async throws -> [PodcastEpisode] {
+        var components = URLComponents(string: "https://www.radiorecord.ru/api/podcast/")!
+        components.queryItems = [URLQueryItem(name: "id", value: String(podcastID))]
+        let (data, response) = try await session.data(from: components.url!)
+        try validate(response)
+        return try decoder.decode(PodcastFeedResponse<PodcastEpisode>.self, from: data).result.tracks
+    }
+
     /// Тот же эндпоинт отдаёт и выпуски подкаста, и треки новинок,
     /// поэтому разбор вынесен в общий метод.
     static func fetchFeedTracks(id: Int) async throws -> [Track] {

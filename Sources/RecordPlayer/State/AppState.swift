@@ -8,6 +8,7 @@ enum SidebarSection: String, Hashable, CaseIterable, Identifiable {
     case favorites
     case history
     case charts
+    case podcasts
 
     var id: String { rawValue }
 
@@ -17,6 +18,7 @@ enum SidebarSection: String, Hashable, CaseIterable, Identifiable {
         case .favorites: L10n.string("Избранное")
         case .history: L10n.string("История")
         case .charts: L10n.string("Чарты")
+        case .podcasts: L10n.string("Подкасты")
         }
     }
 
@@ -26,6 +28,7 @@ enum SidebarSection: String, Hashable, CaseIterable, Identifiable {
         case .favorites: "heart"
         case .history: "clock.arrow.circlepath"
         case .charts: "chart.bar"
+        case .podcasts: "mic"
         }
     }
 }
@@ -118,6 +121,20 @@ final class AppState: ObservableObject {
     @Published private(set) var isLoadingPlaylist = false
     @Published private(set) var playlistError: String?
 
+    // MARK: - Подкасты
+
+    @Published private(set) var podcasts: [Podcast] = []
+    @Published private(set) var isLoadingPodcasts = false
+    @Published private(set) var podcastsError: String?
+
+    /// Открытый подкаст. Отдельно от `playlistStation`: полноразмерный режим
+    /// станции жёстко завязан на тип `Station`, и смешивать их в одном поле
+    /// значило бы размыть оба.
+    @Published var openPodcast: Podcast?
+    @Published private(set) var episodes: [Int: [PodcastEpisode]] = [:]
+    @Published private(set) var loadingEpisodes: Set<Int> = []
+    @Published private(set) var episodesError: [Int: String] = [:]
+
     // MARK: - Чарты
 
     /// Чарты меняются раз в неделю, поэтому грузятся лениво — при первом
@@ -127,6 +144,7 @@ final class AppState: ObservableObject {
     @Published private(set) var chartErrors: [ChartKind: String] = [:]
 
     let player = AudioPlayer()
+    let preview = PreviewPlayer()
 
     // MARK: - Внутреннее
 
@@ -168,6 +186,10 @@ final class AppState: ObservableObject {
             restoreLastStation()
         }
 
+        if let cachedPodcasts = RecordAPI.cachedPodcasts(), !cachedPodcasts.isEmpty {
+            podcasts = cachedPodcasts.sorted { $0.sortOrder < $1.sortOrder }
+        }
+
         // Фильтрация по поиску идёт с небольшой задержкой: поле остаётся
         // мгновенно отзывчивым, а список пересобирается один раз после паузы в наборе.
         searchSubject
@@ -195,6 +217,11 @@ final class AppState: ObservableObject {
         // иконки play/pause по всему интерфейсу. Громкость сюда намеренно не входит:
         // иначе каждое движение ползунка перерисовывало бы всю сетку станций.
         // Её слушает отдельный `VolumeSlider` напрямую у плеера.
+        preview.$playingID
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
+
         player.$state
             .removeDuplicates()
             .sink { [weak self] state in
@@ -509,6 +536,72 @@ final class AppState: ObservableObject {
             if charts[kind] == nil { chartErrors[kind] = error.localizedDescription }
         }
         loadingCharts.remove(kind)
+    }
+
+    // MARK: - Предпрослушивание из чартов
+
+    /// Включает или выключает тридцатисекундный фрагмент.
+    ///
+    /// Радио при этом ставится на паузу: одновременно должно звучать что-то одно.
+    /// Обратно эфир сам не возвращается — самопроизвольно оживающий звук пугает
+    /// сильнее, чем польза от такой любезности.
+    func togglePreview(_ entry: ChartEntry) {
+        guard let url = entry.previewURL, let id = entry.track?.id else { return }
+        if preview.playingID != id, player.state.isActive {
+            player.pause()
+        }
+        preview.toggle(id: id, url: url, volume: player.isMuted ? 0 : player.volume)
+        objectWillChange.send()
+    }
+
+    func stopPreview() {
+        guard preview.playingID != nil else { return }
+        preview.stop()
+        objectWillChange.send()
+    }
+
+    // MARK: - Подкасты
+
+    func showPodcast(_ podcast: Podcast) {
+        openPodcast = podcast
+        guard let id = podcast.feedID else { return }
+        Task { await loadEpisodes(podcastID: id) }
+    }
+
+    func closePodcast() {
+        openPodcast = nil
+    }
+
+    func loadPodcasts(force: Bool = false) async {
+        if !force, !podcasts.isEmpty { return }
+        if isLoadingPodcasts { return }
+
+        isLoadingPodcasts = podcasts.isEmpty
+        podcastsError = nil
+        do {
+            podcasts = try await RecordAPI.fetchPodcasts()
+                .sorted { $0.sortOrder < $1.sortOrder }
+        } catch {
+            // Показанный каталог не затираем — пусть останется прежний.
+            if podcasts.isEmpty { podcastsError = error.localizedDescription }
+        }
+        isLoadingPodcasts = false
+    }
+
+    func loadEpisodes(podcastID: Int, force: Bool = false) async {
+        if !force, episodes[podcastID] != nil { return }
+        if loadingEpisodes.contains(podcastID) { return }
+
+        loadingEpisodes.insert(podcastID)
+        episodesError[podcastID] = nil
+        do {
+            episodes[podcastID] = try await RecordAPI.fetchEpisodes(podcastID: podcastID)
+        } catch {
+            if episodes[podcastID] == nil {
+                episodesError[podcastID] = error.localizedDescription
+            }
+        }
+        loadingEpisodes.remove(podcastID)
     }
 
     // MARK: - Статистика прослушивания

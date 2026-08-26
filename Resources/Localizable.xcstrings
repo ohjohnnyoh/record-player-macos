@@ -94,6 +94,59 @@
         }
       }
     },
+    "%lld выпусков": {
+      "extractionState": "manual",
+      "localizations": {
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld выпуск"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld выпуска"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld выпусков"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld выпуска"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld episode"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld episodes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld станций": {
       "extractionState": "manual",
       "localizations": {
@@ -343,6 +396,16 @@
         }
       }
     },
+    "Без даты": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No date"
+          }
+        }
+      }
+    },
     "Без названия": {
       "localizations": {
         "en": {
@@ -379,6 +442,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "This version improves app stability and quality."
+          }
+        }
+      }
+    },
+    "Вернуться к списку подкастов": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to the podcast list"
           }
         }
       }
@@ -553,6 +626,26 @@
         }
       }
     },
+    "Выпуски": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Episodes"
+          }
+        }
+      }
+    },
+    "Выпусков пока нет": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Episodes Yet"
+          }
+        }
+      }
+    },
     "Высокое": {
       "localizations": {
         "en": {
@@ -599,6 +692,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Double-click to play the station"
+          }
+        }
+      }
+    },
+    "Двойное нажатие включает фрагмент": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-tap to play a 30-second preview"
+          }
+        }
+      }
+    },
+    "Двойное нажатие открывает подкаст": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-tap to open the podcast"
           }
         }
       }
@@ -833,6 +946,16 @@
         }
       }
     },
+    "К подкастам": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podcasts"
+          }
+        }
+      }
+    },
     "К станциям": {
       "localizations": {
         "en": {
@@ -949,6 +1072,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Unable to load"
+          }
+        }
+      }
+    },
+    "Не удалось загрузить выпуски": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could Not Load Episodes"
+          }
+        }
+      }
+    },
+    "Не удалось загрузить подкасты": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could Not Load Podcasts"
           }
         }
       }
@@ -1153,6 +1296,16 @@
         }
       }
     },
+    "Остановить фрагмент": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Preview"
+          }
+        }
+      }
+    },
     "Откройте страницу релиза, чтобы прочитать описание и скачать обновление.": {
       "localizations": {
         "en": {
@@ -1203,12 +1356,32 @@
         }
       }
     },
+    "Открыть на сайте": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open on the Website"
+          }
+        }
+      }
+    },
     "Открыть окно": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Open Window"
+          }
+        }
+      }
+    },
+    "Открыть подкаст": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Podcast"
           }
         }
       }
@@ -1383,6 +1556,36 @@
         }
       }
     },
+    "Подкаст не вернул ни одного выпуска.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This podcast returned no episodes."
+          }
+        }
+      }
+    },
+    "Подкастов пока нет": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Podcasts Yet"
+          }
+        }
+      }
+    },
+    "Подкасты": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Podcasts"
+          }
+        }
+      }
+    },
     "Подключение": {
       "localizations": {
         "en": {
@@ -1419,6 +1622,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Search"
+          }
+        }
+      }
+    },
+    "Поиск по выпускам": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search episodes"
           }
         }
       }
@@ -1663,6 +1876,16 @@
         }
       }
     },
+    "Сервер не вернул ни одного подкаста.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server returned no podcasts."
+          }
+        }
+      }
+    },
     "Сервер не вернул ни одной позиции.": {
       "localizations": {
         "en": {
@@ -1699,6 +1922,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copy Track Title"
+          }
+        }
+      }
+    },
+    "Скопировать состав": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Contents"
           }
         }
       }
@@ -1769,6 +2002,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sort"
+          }
+        }
+      }
+    },
+    "Состав выпуска": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Episode contents"
           }
         }
       }
@@ -1949,6 +2192,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Purple"
+          }
+        }
+      }
+    },
+    "Фрагмент 30 секунд": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30-Second Preview"
           }
         }
       }

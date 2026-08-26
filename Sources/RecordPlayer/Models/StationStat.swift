@@ -13,15 +13,7 @@ struct StationStat: Codable, Identifiable, Hashable {
     var durationText: String { Self.duration(totalSeconds) }
 
     static func duration(_ seconds: Double) -> String {
-        let total = Int(seconds.rounded())
-        let hours = total / 3600
-        let minutes = (total % 3600) / 60
-        switch (hours, minutes) {
-        case (0, 0): return L10n.string("меньше минуты")
-        case (0, _): return L10n.format("%@ мин", String(minutes))
-        case (_, 0): return L10n.format("%@ ч", String(hours))
-        default: return L10n.format("%@ ч %@ мин", String(hours), String(minutes))
-        }
+        L10n.duration(seconds: seconds)
     }
 
     /// «8 включений» — с правильным окончанием.
