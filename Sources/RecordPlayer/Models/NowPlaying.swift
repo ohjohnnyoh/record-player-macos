@@ -10,6 +10,7 @@ struct Track: Codable, Hashable, Identifiable {
     let image200: String?
     let image600: String?
     let itunesUrl: String?
+    let listenUrl: String?
     let shareUrl: String?
 
     var displayArtist: String { (artist?.trimmed).nilIfEmpty ?? "" }
@@ -31,6 +32,9 @@ struct Track: Codable, Hashable, Identifiable {
     var smallArtworkURL: URL? {
         (image200 ?? image100 ?? image600).flatMap(URL.init(string:))
     }
+
+    /// Тридцатисекундный фрагмент из Apple Music — полного трека API не отдаёт.
+    var listenURL: URL? { listenUrl.flatMap(URL.init(string:)) }
 
     /// Ключ для сравнения «сменился ли трек» — id не всегда стабилен.
     var identityKey: String { "\(displayArtist)|\(displaySong)" }

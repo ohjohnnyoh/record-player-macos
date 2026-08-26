@@ -1,7 +1,6 @@
 import Foundation
 
-/// Тонкий клиент публичного API radiorecord.ru.
-/// Всего два запроса: список станций и «что сейчас играет» на всех станциях сразу.
+/// Тонкий клиент публичного API radiorecord.ru: станции, эфир, чарты.
 enum RecordAPI {
     static let stationsURL = URL(string: "https://www.radiorecord.ru/api/stations/")!
     static let nowURL = URL(string: "https://www.radiorecord.ru/api/stations/now/")!
@@ -60,6 +59,54 @@ enum RecordAPI {
         let (data, response) = try await session.data(from: components.url!)
         try validate(response)
         return try decoder.decode(StationHistoryResponse.self, from: data).result.history
+    }
+
+    // MARK: - Чарты
+
+    /// Суперчарт — недельный хит-парад, порядка 30 позиций.
+    static func fetchSuperchart() async throws -> [ChartEntry] {
+        try await fetchChart(path: "superchart")
+    }
+
+    /// Клаб чарт — недельный топ клубных треков.
+    static func fetchClubchart() async throws -> [ChartEntry] {
+        try await fetchChart(path: "clubchart")
+    }
+
+    private static func fetchChart(path: String) async throws -> [ChartEntry] {
+        let url = URL(string: "https://www.radiorecord.ru/api/\(path)/")!
+        let (data, response) = try await session.data(from: url)
+        try validate(response)
+        return try decoder.decode(ChartResponse.self, from: data).result
+    }
+
+    /// Record New — новинки радио.
+    ///
+    /// На сайте у этого раздела нет собственного эндпоинта, страница собирается
+    /// на сервере. Но список новинок оказался обычным фидом: `/api/podcast/`
+    /// с идентификатором 15762 отдаёт те же треки в том же порядке — сверил
+    /// первые тридцать позиций со страницей, совпали один в один.
+    ///
+    /// Поэтому здесь честный JSON, а не разбор разметки. Идентификатор фида —
+    /// единственное слабое место: если он сменится, раздел должен деградировать
+    /// мягко, а не ронять соседние чарты.
+    static func fetchNewest(limit: Int = 30) async throws -> [ChartEntry] {
+        let tracks = try await fetchFeedTracks(id: recordNewFeedID)
+        return tracks.prefix(limit).map { ChartEntry(name: nil, track: $0) }
+    }
+
+    /// Идентификатор фида новинок — взят из поля `podcastId` у треков на
+    /// странице `/chart/newest`.
+    static let recordNewFeedID = 15762
+
+    /// Тот же эндпоинт отдаёт и выпуски подкаста, и треки новинок,
+    /// поэтому разбор вынесен в общий метод.
+    static func fetchFeedTracks(id: Int) async throws -> [Track] {
+        var components = URLComponents(string: "https://www.radiorecord.ru/api/podcast/")!
+        components.queryItems = [URLQueryItem(name: "id", value: String(id))]
+        let (data, response) = try await session.data(from: components.url!)
+        try validate(response)
+        return try decoder.decode(PodcastFeedResponse<Track>.self, from: data).result.tracks
     }
 
     private static func validate(_ response: URLResponse) throws {

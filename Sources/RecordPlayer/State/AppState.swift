@@ -7,6 +7,7 @@ enum SidebarSection: String, Hashable, CaseIterable, Identifiable {
     case all
     case favorites
     case history
+    case charts
 
     var id: String { rawValue }
 
@@ -15,6 +16,7 @@ enum SidebarSection: String, Hashable, CaseIterable, Identifiable {
         case .all: L10n.string("Все станции")
         case .favorites: L10n.string("Избранное")
         case .history: L10n.string("История")
+        case .charts: L10n.string("Чарты")
         }
     }
 
@@ -23,6 +25,7 @@ enum SidebarSection: String, Hashable, CaseIterable, Identifiable {
         case .all: "square.grid.2x2"
         case .favorites: "heart"
         case .history: "clock.arrow.circlepath"
+        case .charts: "chart.bar"
         }
     }
 }
@@ -114,6 +117,14 @@ final class AppState: ObservableObject {
     @Published private(set) var playlist: [PlaylistTrack] = []
     @Published private(set) var isLoadingPlaylist = false
     @Published private(set) var playlistError: String?
+
+    // MARK: - Чарты
+
+    /// Чарты меняются раз в неделю, поэтому грузятся лениво — при первом
+    /// открытии вкладки, а не в `bootstrap()`.
+    @Published private(set) var charts: [ChartKind: [ChartEntry]] = [:]
+    @Published private(set) var loadingCharts: Set<ChartKind> = []
+    @Published private(set) var chartErrors: [ChartKind: String] = [:]
 
     let player = AudioPlayer()
 
@@ -471,6 +482,33 @@ final class AppState: ObservableObject {
             playlistError = error.localizedDescription
         }
         isLoadingPlaylist = false
+    }
+
+    // MARK: - Чарты
+
+    /// Загружает чарт, если он ещё не загружен. `force` перезапрашивает вручную.
+    ///
+    /// Каждый чарт грузится и падает независимо: у новинок неофициальный источник,
+    /// и его поломка не должна гасить остальные две вкладки.
+    func loadChart(_ kind: ChartKind, force: Bool = false) async {
+        if !force, charts[kind] != nil { return }
+        if loadingCharts.contains(kind) { return }
+
+        loadingCharts.insert(kind)
+        chartErrors[kind] = nil
+        do {
+            let entries: [ChartEntry]
+            switch kind {
+            case .superchart: entries = try await RecordAPI.fetchSuperchart()
+            case .club: entries = try await RecordAPI.fetchClubchart()
+            case .newest: entries = try await RecordAPI.fetchNewest()
+            }
+            charts[kind] = entries
+        } catch {
+            // Показанный ранее чарт не затираем — пусть лучше останется старый.
+            if charts[kind] == nil { chartErrors[kind] = error.localizedDescription }
+        }
+        loadingCharts.remove(kind)
     }
 
     // MARK: - Статистика прослушивания

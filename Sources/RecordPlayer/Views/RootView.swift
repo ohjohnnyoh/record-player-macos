@@ -23,6 +23,8 @@ struct RootView: View {
                         StationGridView()
                     case .history:
                         HistoryView()
+                    case .charts:
+                        ChartsView()
                     }
                 }
             }
@@ -181,7 +183,7 @@ struct SidebarView: View {
                     Button {
                         state.closeStation()
                         state.selectedGenre = nil
-                        if state.section == .history { state.section = .all }
+                        if state.section != .all, state.section != .favorites { state.section = .all }
                     } label: {
                         genreRow(title: L10n.string("Все жанры"), active: state.selectedGenre == nil)
                     }
@@ -191,7 +193,7 @@ struct SidebarView: View {
                         Button {
                             state.closeStation()
                             state.selectedGenre = (state.selectedGenre == genre) ? nil : genre
-                            if state.section == .history { state.section = .all }
+                            if state.section != .all, state.section != .favorites { state.section = .all }
                         } label: {
                             genreRow(title: genre, active: state.selectedGenre == genre)
                         }
