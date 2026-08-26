@@ -6,6 +6,33 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Record</title>
         <item>
+            <title>2.0</title>
+            <pubDate>Thu, 27 Aug 2026 02:36:16 +0300</pubDate>
+            <sparkle:version>11</sparkle:version>
+            <sparkle:shortVersionString>2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description sparkle:format="markdown"><![CDATA[# Record 2.0
+
+## Что нового
+
+- Раздел «Чарты»: Суперчарт, Клаб чарт и Новинки с тридцатисекундными фрагментами.
+- Раздел «Подкасты»: десять шоу, выпуски с составом, поиском и группировкой по дням.
+- Выпуски проигрываются целиком: перемотка, продолжение с места остановки, ±15 секунд.
+- Прогресс выпусков и отметка «прослушано» сохраняются между запусками.
+- Панель «Сейчас исполняется» показывает позицию выпуска и позволяет перематывать.
+
+## What is new
+
+- Charts section: Superchart, Club Chart, and New Releases with 30-second previews.
+- Podcasts section: ten shows with episode contents, search, and day grouping.
+- Full episode playback: scrubbing, resume from where you stopped, ±15 seconds.
+- Episode progress and played marks persist between launches.
+- The Now Playing panel shows episode position and supports seeking.
+]]></description>
+            <enclosure url="https://github.com/ohjohnnyoh/record-player-macos/releases/download/v2.0/Record-2.0.zip" length="3235586" type="application/octet-stream" sparkle:edSignature="kqGKHLaVjw/PBUuC1QEsF0x4DIfTrYt2h3fZFghEOq8bD2AhOBc2soExYXdWEbf4MlXqHABOWzZF6DkQX5RVDQ=="/>
+        </item>
+        <item>
             <title>1.9</title>
             <pubDate>Mon, 17 Aug 2026 18:59:57 +0300</pubDate>
             <sparkle:version>10</sparkle:version>
@@ -57,36 +84,9 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
 ]]></description>
             <enclosure url="https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.8/Record-1.8.zip" length="2954504" type="application/octet-stream" sparkle:edSignature="9rwIcxpah09wwK91djAnU3yVx59JUiZzEAmnjHfpFAvcqqDFnBDC3RnxxuaSqj8l/zYautFtYQXDybnGUcjhBw=="/>
         </item>
-        <item>
-            <title>1.7</title>
-            <pubDate>Fri, 14 Aug 2026 01:29:14 +0300</pubDate>
-            <sparkle:version>8</sparkle:version>
-            <sparkle:shortVersionString>1.7</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description sparkle:format="markdown"><![CDATA[# Record 1.7
-
-## Что нового
-
-- Автоматическая проверка обновлений раз в сутки.
-- Установка новой версии прямо внутри Record.
-- Действия «Обновить», «Напомнить завтра» и «Пропустить эту версию».
-- Стеклянная панель с прогрессом загрузки и установки.
-- Ручная проверка и параметры обновлений в настройках.
-
-## What is new
-
-- Automatic update checks once a day.
-- New versions can be installed directly from Record.
-- Update, Remind Me Tomorrow, and Skip This Version actions.
-- A glass panel with download and installation progress.
-- Manual checks and update preferences in Settings.
-]]></description>
-            <enclosure url="https://github.com/ohjohnnyoh/record-player-macos/releases/download/v1.7/Record-1.7.zip" length="2927006" type="application/octet-stream" sparkle:edSignature="D0SS8qB9pWkqM4izSf9/3XCmCbHvSBTIu0/1HKqLWK0+g/ugUCs9IE5T7NHI5JsAq75dXFHFJyWoI8aqak7KCQ=="/>
-        </item>
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: 6lA6wjtySwZOJbnCyHjyW+bD0aIhbFp9GmNMVCQxpVJZFywKDWBqJZjJUBx96ts2gDVkp7uPIeoHarBcPDAiBg==
-length: 5108
+edSignature: j9KHTLVVeaQ8Xmfs/+2fJHlBKkUJY7r1gYuRJIogf+KMxyatjRVwCnzV7XcXfX8c5unyZxKuuGz97ZwDRTfEBg==
+length: 5474
 -->
