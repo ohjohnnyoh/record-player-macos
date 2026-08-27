@@ -51,9 +51,13 @@ xattr -dr com.apple.quarantine /Applications/Record.app
 
 ### Интерфейс
 
-| Полный режим станции | Режим с боковой панелью |
+| Чарты | Подкасты |
 |---|---|
-| ![Полный режим станции](docs/screenshots/06-full-station.png) | ![Полный режим станции с боковой панелью](docs/screenshots/12-full-station-sidebar.png) |
+| ![Чарты](docs/screenshots/07-charts.png) | ![Подкасты](docs/screenshots/08-podcasts.png) |
+
+| Выпуски подкаста | Полный режим станции |
+|---|---|
+| ![Выпуски подкаста](docs/screenshots/09-podcast-episodes.png) | ![Полный режим станции](docs/screenshots/06-full-station.png) |
 
 | Избранное | История треков |
 |---|---|
@@ -65,9 +69,9 @@ xattr -dr com.apple.quarantine /Applications/Record.app
 
 | Мини-плеер | Плеер в строке меню |
 |---|---|
-| ![Мини-плеер](docs/screenshots/08-mini-player.png) | ![Плеер в строке меню](docs/screenshots/09-menubar-player.png) |
+| ![Мини-плеер](docs/screenshots/10-mini-player.png) | ![Плеер в строке меню](docs/screenshots/11-menubar-player.png) |
 
-[Посмотреть все 12 скриншотов](docs/screenshots)
+[Посмотреть все 13 скриншотов](docs/screenshots)
 
 ### Горячие клавиши
 
@@ -76,7 +80,9 @@ xattr -dr com.apple.quarantine /Applications/Record.app
 | `Пробел` или `⌘P` | Играть или поставить на паузу |
 | `⌥⌘M` | Открыть мини-плеер |
 | `⌘→` и `⌘←` | Следующая или предыдущая станция |
+| `⌘]` и `⌘[` | Вперёд или назад на 15 секунд в выпуске подкаста |
 | `⇧⌘R` | Случайная станция |
+| `⌘F` | Перейти в поиск станций |
 | `⌘↑` и `⌘↓` | Изменить громкость |
 | `⌘M` | Выключить или включить звук |
 
@@ -143,19 +149,23 @@ Record requires macOS 14 or later. It uses native Liquid Glass on macOS 26 and A
 
 ### Interface
 
-| Full station view | Full view with sidebar |
+| Charts | Podcasts |
 |---|---|
-| ![Full station view](docs/screenshots/06-full-station.png) | ![Full station view with sidebar](docs/screenshots/12-full-station-sidebar.png) |
+| ![Charts](docs/screenshots/07-charts.png) | ![Podcasts](docs/screenshots/08-podcasts.png) |
 
-| Main window in English | Player options |
+| Podcast episodes | Full station view |
 |---|---|
-| ![English interface](docs/screenshots/11-all-stations-english.png) | ![Player options](docs/screenshots/07-player-options.png) |
+| ![Podcast episodes](docs/screenshots/09-podcast-episodes.png) | ![Full station view](docs/screenshots/06-full-station.png) |
 
-| Search | Accent colors |
+| Interface in English | Accent color |
 |---|---|
-| ![Search](docs/screenshots/05-search.png) | ![Accent colors](docs/screenshots/10-accent-palettes.png) |
+| ![English interface](docs/screenshots/13-english-interface.png) | ![Accent color](docs/screenshots/12-accent-color.png) |
 
-[View all 12 screenshots](docs/screenshots)
+| Search | Menu bar player |
+|---|---|
+| ![Search](docs/screenshots/05-search.png) | ![Menu bar player](docs/screenshots/11-menubar-player.png) |
+
+[View all 13 screenshots](docs/screenshots)
 
 ### Keyboard shortcuts
 
@@ -164,7 +174,9 @@ Record requires macOS 14 or later. It uses native Liquid Glass on macOS 26 and A
 | `Space` or `⌘P` | Play or pause |
 | `⌥⌘M` | Open the mini player |
 | `⌘→` and `⌘←` | Next or previous station |
+| `⌘]` and `⌘[` | Skip forward or back 15 seconds in a podcast episode |
 | `⇧⌘R` | Play a random station |
+| `⌘F` | Jump to station search |
 | `⌘↑` and `⌘↓` | Change volume |
 | `⌘M` | Mute or unmute |
 
