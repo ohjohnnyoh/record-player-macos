@@ -12,17 +12,13 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <sparkle:shortVersionString>2.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-            <description sparkle:format="markdown"><![CDATA[# Record 2.0
-
-## Что нового
-
-- Раздел «Чарты»: Суперчарт, Клаб чарт и Новинки с тридцатисекундными фрагментами.
+            <description sparkle:format="markdown"><![CDATA[- Раздел «Чарты»: Суперчарт, Клаб чарт и Новинки с тридцатисекундными фрагментами.
 - Раздел «Подкасты»: десять шоу, выпуски с составом, поиском и группировкой по дням.
 - Выпуски проигрываются целиком: перемотка, продолжение с места остановки, ±15 секунд.
 - Прогресс выпусков и отметка «прослушано» сохраняются между запусками.
 - Панель «Сейчас исполняется» показывает позицию выпуска и позволяет перематывать.
 
-## What is new
+## English
 
 - Charts section: Superchart, Club Chart, and New Releases with 30-second previews.
 - Podcasts section: ten shows with episode contents, search, and day grouping.
@@ -87,6 +83,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: j9KHTLVVeaQ8Xmfs/+2fJHlBKkUJY7r1gYuRJIogf+KMxyatjRVwCnzV7XcXfX8c5unyZxKuuGz97ZwDRTfEBg==
-length: 5474
+edSignature: dxnJKb/WoHFb/rTsxr0sBeBeptD63w6F6DGpqe66QYP+LWxs7brzostZgW6ldV1j0mXvzc7Pw83nepYmW4A+CQ==
+length: 5432
 -->
