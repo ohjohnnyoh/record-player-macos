@@ -40,6 +40,15 @@ struct PodcastDetailView: View {
             .padding(.bottom, 20)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Тот же приём, что и в полном режиме станции: обложка задаёт цвет
+        // экрана. У выпуска своя картинка, поэтому фон идёт за ним, а не за
+        // обложкой подкаста.
+        .background {
+            ArtworkTintBackground(
+                artworkURL: tintArtworkURL,
+                fallbackAccent: accent
+            )
+        }
         .id(podcast.id)
         .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.992)))
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: podcast.id)
@@ -142,6 +151,12 @@ struct PodcastDetailView: View {
                 .padding(.vertical, 7)
             }
             .buttonStyle(.borderedProminent)
+            // Форму задаём явно. Над системным материалом macOS 26 рисует
+            // такую кнопку стеклом со своим скруглением, а над непрозрачным
+            // фоном — старым стилем с заметно более острыми углами. Экран
+            // теперь крашеный, то есть непрозрачный, и без этой строки кнопка
+            // на глаз становится квадратной.
+            .buttonBorderShape(.roundedRectangle(radius: 10))
             .tint(accent)
         }
     }
@@ -164,6 +179,14 @@ struct PodcastDetailView: View {
             return started
         }
         return episodes.first
+    }
+
+    /// Обложка, задающая цвет экрана: играющий выпуск, иначе сам подкаст.
+    private var tintArtworkURL: URL? {
+        if playsFromThisPodcast, let episode = state.currentEpisode {
+            return episode.smallArtworkURL ?? podcast.coverURL
+        }
+        return podcast.coverURL
     }
 
     /// Играет ли сейчас выпуск именно этого подкаста.
@@ -219,6 +242,7 @@ struct PodcastDetailView: View {
                         Task { await state.loadEpisodes(podcastID: feedID, force: true) }
                     }
                     .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.roundedRectangle(radius: 10))
                     .tint(accent)
                 }
             }

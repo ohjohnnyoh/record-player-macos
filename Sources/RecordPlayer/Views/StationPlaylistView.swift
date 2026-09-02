@@ -58,22 +58,13 @@ struct StationDetailView: View {
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: station.id)
     }
 
+    /// Экран красится в цвета текущей обложки. Если трек без картинки —
+    /// берём логотип станции: он же показан на месте обложки.
     private var detailBackground: some View {
-        ZStack {
-            Color.black.opacity(0.05)
-            RadialGradient(
-                colors: [accent.opacity(0.13), .clear],
-                center: .bottomLeading,
-                startRadius: 0,
-                endRadius: 620
-            )
-            LinearGradient(
-                colors: [.white.opacity(0.025), .clear, .black.opacity(0.10)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        }
-        .ignoresSafeArea()
+        ArtworkTintBackground(
+            artworkURL: currentTrack?.artworkURL ?? station.iconURL,
+            fallbackAccent: accent
+        )
     }
 
     // MARK: - Navigation
@@ -450,6 +441,7 @@ struct StationDetailView: View {
             if let retry {
                 Button("Повторить", action: retry)
                     .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.roundedRectangle(radius: 10))
                     .tint(accent)
                     .padding(.top, 3)
             }

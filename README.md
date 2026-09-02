@@ -4,7 +4,7 @@
 
 An unofficial native Radio Record player for macOS.
 
-[Скачать Record 2.0](https://github.com/ohjohnnyoh/record-player-macos/releases/latest) · [English](#english) · [Все скриншоты](docs/screenshots)
+[Скачать Record 2.1](https://github.com/ohjohnnyoh/record-player-macos/releases/latest) · [English](#english) · [Все скриншоты](docs/screenshots)
 
 ![Главное окно Record](docs/screenshots/01-all-stations.png)
 
@@ -16,7 +16,7 @@ Record позволяет слушать все станции Radio Record бе
 
 ### Скачать и установить
 
-1. Скачайте [`Record-2.0.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v2.0/Record-2.0.dmg).
+1. Скачайте [`Record-2.1.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v2.1/Record-2.1.dmg).
 2. Откройте образ и перетащите Record в папку «Программы».
 3. При первом запуске нажмите на приложение правой кнопкой мыши и выберите **Открыть**.
 4. Подтвердите запуск в появившемся окне.
@@ -39,6 +39,7 @@ xattr -dr com.apple.quarantine /Applications/Record.app
 - **Мини-плеер:** отдельное квадратное окно с обложкой, громкостью и управлением воспроизведением.
 - **Строка меню:** текущий трек, избранные станции и основные кнопки доступны без открытия главного окна.
 - **Полный режим станции:** нажмите обложку в нижнем плеере, чтобы открыть крупную обложку, центрированное управление станцией и историю эфира за последние сутки. Длинные названия треков показываются бегущей строкой.
+- **Цвет по обложке:** в полноразмерном экране станции и на странице подкаста фон окрашивается в цвета текущей обложки, как в развёрнутом плеере Apple Music. Каталог станций остаётся обычным полупрозрачным окном macOS.
 - **Чарты:** Суперчарт, Клаб чарт и Новинки. У трека есть тридцатисекундный фрагмент, переход в Apple Music и копирование названия.
 - **Подкасты:** десять шоу Radio Record. Выпуски проигрываются целиком — с перемоткой, продолжением с места остановки и отметкой «прослушано», которая переживает перезапуск.
 - **История и статистика:** данные хранятся только на этом Mac.
@@ -114,7 +115,7 @@ The interface is available in Russian and English. The app follows the language 
 
 ### Download and install
 
-1. Download [`Record-2.0.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v2.0/Record-2.0.dmg).
+1. Download [`Record-2.1.dmg`](https://github.com/ohjohnnyoh/record-player-macos/releases/download/v2.1/Record-2.1.dmg).
 2. Open the disk image and drag Record to Applications.
 3. On first launch, right-click the app and choose **Open**.
 4. Confirm the launch in the macOS dialog.
@@ -137,6 +138,7 @@ Record requires macOS 14 or later. It uses native Liquid Glass on macOS 26 and A
 - **Mini player:** a separate square window with artwork, volume, and playback controls.
 - **Menu bar player:** see the current track, favorite stations, and essential controls without opening the main window.
 - **Full station view:** click the artwork in the bottom player to open large current-track artwork, centered station controls, and the last 24 hours of broadcast history. Long track names use a smooth marquee without overlapping the history column.
+- **Artwork-driven color:** the full station view and the podcast page take on the colors of the current artwork, like the expanded Apple Music player. The station catalog stays a plain translucent macOS window.
 - **Charts:** Superchart, Club Chart, and New Releases. Every track offers a 30-second preview, an Apple Music link, and title copying.
 - **Podcasts:** ten Radio Record shows. Episodes play in full, with scrubbing, resume from where you stopped, and a played mark that survives a restart.
 - **History and statistics:** listening data stays on your Mac.

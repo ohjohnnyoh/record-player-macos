@@ -73,6 +73,42 @@ actor ImageStore {
         return NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
     }
 
+    // MARK: - Палитра обложки
+
+    private var palettes: [URL: ArtworkPalette] = [:]
+    private var paletteOrder: [URL] = []
+    private var paletteFailures: Set<URL> = []
+
+    /// Цвета обложки для окраски фона полноразмерного экрана.
+    ///
+    /// Считается один раз на адрес: на радио трек меняется каждые три минуты,
+    /// и возвращаться к уже разобранной обложке приходится постоянно.
+    func palette(for url: URL) async -> ArtworkPalette? {
+        if let cached = palettes[url] { return cached }
+        if paletteFailures.contains(url) { return nil }
+
+        // Разбираем маленькую копию: анализатор всё равно ужимает до 32 px,
+        // а декодирование в 64 px почти бесплатно и берёт уже скачанный файл.
+        guard let image = await image(for: url, maxPixel: 64),
+              let palette = ArtworkPaletteExtractor.palette(from: image) else {
+            paletteFailures.insert(url)
+            return nil
+        }
+
+        palettes[url] = palette
+        paletteOrder.append(url)
+        if paletteOrder.count > Self.paletteLimit {
+            let extra = paletteOrder.count - Self.paletteLimit
+            for stale in paletteOrder.prefix(extra) { palettes[stale] = nil }
+            paletteOrder.removeFirst(extra)
+        }
+        return palette
+    }
+
+    /// Палитра весит девять чисел, но станция играет часами — без предела
+    /// словарь рос бы всю сессию.
+    private static let paletteLimit = 300
+
     private struct InFlightKey: Hashable {
         let url: URL
         let maxPixel: Int
